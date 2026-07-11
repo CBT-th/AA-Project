@@ -23,9 +23,9 @@
     /* project category colors (progress bar coding) */
     --cat-ns:#6B705C;         /* green  = N-S fertilizer project */
     --cat-ns-fill:#DCEAE3;
-    --cat-scaleup:#C97A62;    /* orange = scale-up project */
+    --cat-scaleup:#10A2C7;    /* blue = scale-up project */
     --cat-scaleup-fill:#DAE4F0;
-    --cat-other:#0E1D80;      /* blue = shared with other projects */
+    --cat-other:#C97A62;     /* orange = shared with other projects */
     --cat-other-fill:#E6E6E2;
 
     --row-h:38px;
@@ -577,8 +577,8 @@ function openRowModal(gid, rid){
         <label>Progress colour / project</label>
         <select id="m-cat">
           <option value="ns" ${catVal==='ns'?'selected':''}>Green — N–S fertilizer project</option>
-          <option value="scaleup" ${catVal==='scaleup'?'selected':''}>Orange — Scale-up project</option>
-          <option value="other" ${catVal==='other'?'selected':''}>Blue — Shared / other project</option>
+          <option value="scaleup" ${catVal==='scaleup'?'selected':''}>Blue — Scale-up project</option>
+          <option value="other" ${catVal==='other'?'selected':''}>Orange — Shared / other project</option>
         </select>
       </div>
     </div>
