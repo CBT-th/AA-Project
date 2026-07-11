@@ -124,6 +124,7 @@
   .lhead .c-label{flex:1;min-width:120px;}
   .lhead .c-req{width:190px;flex-shrink:0;}
   .lhead .c-pic{width:64px;flex-shrink:0;}
+  .lhead .c-move{width:40px;flex-shrink:0;}
   .lhead .c-edit{width:26px;flex-shrink:0;}
 
   .rhead{height:var(--header-h);}
@@ -152,6 +153,11 @@
   }
   .icon-btn:hover{border-color:var(--solid);color:var(--solid);}
   .icon-btn.add{width:auto;padding:0 8px;gap:4px;font-size:10px;}
+  .icon-btn:disabled{opacity:.3;cursor:not-allowed;}
+  .icon-btn:disabled:hover{border-color:var(--line);color:var(--ink-soft);}
+  .move-group{gap:3px;flex-shrink:0;}
+  .move-group.edit-only{display:none;}
+  body.edit-mode .move-group.edit-only{display:flex;}
 
   .rgroup-head{height:32px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--line-soft);}
 
@@ -281,7 +287,7 @@
     </div>
     <span class="lock-hint">
       <span class="locked-txt">🔒 View only — turn on Edit mode (password required) to make changes</span>
-      <span class="unlocked-txt">✎ Edit mode on — use the pencil icons to change items, hover/click a task to see its note</span>
+      <span class="unlocked-txt">✎ Edit mode on — use the pencil icons to change items, ▲▼ to reorder, hover/click a task to see its note</span>
     </span>
     <button class="btn edit-only" onclick="openGroupModal(null)">+ Add task group</button>
     <button class="btn danger" id="deleteSelectedBtn" onclick="deleteSelected()">🗑 Delete selected</button>
@@ -297,6 +303,7 @@
         <span class="c-label">Task / Sub-step</span>
         <span class="c-req">Requirement</span>
         <span class="c-pic">PIC</span>
+        <span class="c-move edit-only">Order</span>
         <span class="c-edit"></span>
       </div>
     </div>
@@ -311,7 +318,7 @@
   <p class="footnote">
     <b>Note:</b> Phase 1A (material characterization) actually started in the 4th week of Jun-2026, before this chart's start date; its bar is clipped to begin at the 1st week of Jul-2026. &nbsp;•&nbsp;
     The board is locked by default. Turn on <b>Edit mode</b> above and enter the password to reveal checkboxes, pencil icons, and delete controls — every change still asks for confirmation. &nbsp;•&nbsp;
-    In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor.
+    In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor. Use the <b>▲ / ▼</b> buttons to reorder task groups and sub-steps.
   </p>
 
 </div>
@@ -473,6 +480,26 @@ function deleteSelected(){
   saveData(); render();
 }
 
+/* ---------- Reordering ---------- */
+function moveGroup(gid, dir){
+  const idx = data.findIndex(g=>g.id===gid);
+  const newIdx = idx + dir;
+  if(idx===-1 || newIdx<0 || newIdx>=data.length) return;
+  const [item] = data.splice(idx,1);
+  data.splice(newIdx,0,item);
+  saveData(); render();
+}
+function moveRow(gid, rid, dir){
+  const g = data.find(g=>g.id===gid);
+  if(!g) return;
+  const idx = g.rows.findIndex(r=>r.id===rid);
+  const newIdx = idx + dir;
+  if(idx===-1 || newIdx<0 || newIdx>=g.rows.length) return;
+  const [item] = g.rows.splice(idx,1);
+  g.rows.splice(newIdx,0,item);
+  saveData(); render();
+}
+
 /* ---------- Modal engine ---------- */
 const overlay = document.getElementById('overlay');
 const modalBox = document.getElementById('modalBox');
@@ -626,12 +653,16 @@ function render(){
   [...panelLeft.querySelectorAll(':scope > *:not(.lhead)')].forEach(e=>e.remove());
   [...panelRight.querySelectorAll(':scope > *:not(.rhead)')].forEach(e=>e.remove());
 
-  data.forEach(g=>{
+  data.forEach((g, gIdx)=>{
     const lgh = document.createElement('div');
     lgh.className='group-head';
     lgh.innerHTML = `
       <span class="g-check edit-only"><input type="checkbox" title="Select whole group for deletion"></span>
       <span class="g-title">${g.title}</span>
+      <span class="move-group edit-only">
+        <button class="icon-btn move-up" title="Move group up" ${gIdx===0?'disabled':''}>▲</button>
+        <button class="icon-btn move-down" title="Move group down" ${gIdx===data.length-1?'disabled':''}>▼</button>
+      </span>
       <button class="icon-btn add edit-only" title="Add sub-step">+ step</button>
       <button class="icon-btn edit-only" title="Edit / delete group">✎</button>
     `;
@@ -640,9 +671,13 @@ function render(){
       if(gCheck.checked) selectedGroups.add(g.id); else selectedGroups.delete(g.id);
       updateSelectionUI();
     });
-    const [addBtn, editBtn] = lgh.querySelectorAll('button');
-    addBtn.addEventListener('click', ()=>openRowModal(g.id, null));
-    editBtn.addEventListener('click', ()=>openGroupModal(g.id));
+    lgh.querySelector('.move-up').addEventListener('click', ()=>moveGroup(g.id, -1));
+    lgh.querySelector('.move-down').addEventListener('click', ()=>moveGroup(g.id, 1));
+    const [addBtn, editBtn] = lgh.querySelectorAll('.icon-btn.add, .group-head > .icon-btn:not(.add):not(.move-up):not(.move-down)');
+    lgh.querySelector('.icon-btn.add').addEventListener('click', ()=>openRowModal(g.id, null));
+    lgh.querySelectorAll('.icon-btn').forEach(b=>{
+      if(b.textContent.trim()==='✎') b.addEventListener('click', ()=>openGroupModal(g.id));
+    });
     panelLeft.appendChild(lgh);
 
     const rgh = document.createElement('div');
@@ -650,7 +685,7 @@ function render(){
     rgh.style.width=(TOTAL_COLS*colW)+'px';
     panelRight.appendChild(rgh);
 
-    g.rows.forEach(r=>{
+    g.rows.forEach((r, rIdx)=>{
       const cat = r.category || 'other';
       const lrow = document.createElement('div');
       lrow.className='lrow';
@@ -659,6 +694,10 @@ function render(){
         <span class="r-label">${r.label}</span>
         <span class="r-req" title="${(r.requirement||'').replace(/"/g,'&quot;')}">${r.requirement ? r.requirement : '—'}</span>
         <span class="r-pic"></span>
+        <span class="move-group edit-only">
+          <button class="icon-btn move-up" title="Move step up" ${rIdx===0?'disabled':''}>▲</button>
+          <button class="icon-btn move-down" title="Move step down" ${rIdx===g.rows.length-1?'disabled':''}>▼</button>
+        </span>
         <button class="icon-btn edit-only" title="Edit sub-step">✎</button>
       `;
       const rCheck = lrow.querySelector('.r-check input');
@@ -666,6 +705,8 @@ function render(){
         if(rCheck.checked) selectedRows.add(r.id); else selectedRows.delete(r.id);
         updateSelectionUI();
       });
+      lrow.querySelector('.move-up').addEventListener('click', ()=>moveRow(g.id, r.id, -1));
+      lrow.querySelector('.move-down').addEventListener('click', ()=>moveRow(g.id, r.id, 1));
       const picSpan = lrow.querySelector('.r-pic');
       const picInput = document.createElement('input');
       picInput.type='text'; picInput.className='pic-input'; picInput.value = r.pic || '';
@@ -680,7 +721,7 @@ function render(){
         r.pic = picInput.value.trim();
         saveData();
       });
-      lrow.querySelector('button').addEventListener('click', ()=>openRowModal(g.id, r.id));
+      lrow.querySelector('button[title="Edit sub-step"]').addEventListener('click', ()=>openRowModal(g.id, r.id));
       attachNoteHover(lrow.querySelector('.r-label'), r.note);
       panelLeft.appendChild(lrow);
 
