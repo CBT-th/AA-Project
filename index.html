@@ -773,5 +773,30 @@ render();
 renderUpdatedTag();
 window.addEventListener('resize', drawTodayLine);
 </script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+<script>
+  // 2. ค่า Web App Configuration จากหน้าจอของคุณ
+  const firebaseConfig = {
+    apiKey: "AIzaSyBNk8A6JygV8TA6IFhxM7gV4t05F9PUXq4",
+    authDomain: "cbt-th-5103d.firebaseapp.com",
+    projectId: "cbt-th-5103d",
+    storageBucket: "cbt-th-5103d.firebasestorage.app",
+    messagingSenderId: "775489791813",
+    appId: "1:775489791813:web:7cee10c9c9f61521fa802c"
+  };
+
+  // 3. สั่งเริ่มต้นทำงาน Firebase และฐานข้อมูล Firestore
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+
+  console.log("Firebase cbt-th-5103d เชื่อมต่อกับหน้าแดชบอร์ดสำเร็จ!");
+
+  // --- หลังจากนี้คุณสามารถเขียนฟังก์ชันอ่าน/เขียนข้อมูลต่อตรงนี้ได้เลยครับ ---
+</script>
+  
 </body>
 </html>
