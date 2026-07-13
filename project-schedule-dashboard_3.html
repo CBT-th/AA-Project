@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Project Schedule &amp; Progress · Jul 2026–Feb 2027</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EDF1EA;
+    --paper:#FAFBF8;
+    --ink:#1C2620;
+    --ink-soft:#57685C;
+    --line:#D6DECE;
+    --line-soft:#E6EBDF;
+    --solid:#2E6F5C;
+    --solid-fill:#DCEAE3;
+    --planned:#B8863A;
+    --planned-fill:#F4E9D4;
+    --rust:#C0472A;
+
+    /* project category colors (progress bar coding) */
+    --cat-ns:#2E6F5C;         /* green  = N-S fertilizer project */
+    --cat-ns-fill:#DCEAE3;
+    --cat-scaleup:#1B3E6B;    /* dark blue = scale-up project */
+    --cat-scaleup-fill:#DAE4F0;
+    --cat-other:#1C2620;      /* black = shared with other projects */
+    --cat-other-fill:#E6E6E2;
+
+    --row-h:38px;
+    --header-h:56px;
+    --col-w:30px;
+    --left-w:560px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    padding:32px 24px 60px;
+  }
+  .wrap{max-width:1680px;margin:0 auto;}
+
+  /* ===== Header ===== */
+  .titleblock{
+    display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;
+    margin-bottom:18px;border-bottom:2px solid var(--ink);padding-bottom:16px;
+  }
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px;}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;margin:0;letter-spacing:-0.01em;}
+  .updated-tag{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin:8px 0 0;
+    display:flex;align-items:center;gap:6px;
+  }
+  .updated-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--solid);display:inline-block;}
+  .sync-tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;margin:4px 0 0;color:var(--ink-soft);}
+  .sync-tag.ok{color:var(--solid);}
+  .sync-tag.warn{color:var(--planned);}
+  .sync-tag.err{color:var(--rust);}
+  .legend{display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);}
+  .legend-group{display:flex;gap:14px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);}
+  .legend-group .legend-title{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin-right:2px;}
+  .legend-item{display:flex;align-items:center;gap:6px;}
+  .swatch{width:22px;height:10px;border-radius:3px;flex-shrink:0;}
+  .swatch.solid{background:var(--ink-soft);}
+  .swatch.dashed{background:#fff;border:2px dashed var(--ink-soft);}
+  .swatch.today{width:2px;height:16px;background:var(--rust);border-radius:0;}
+  .swatch.cat-ns{background:var(--cat-ns);}
+  .swatch.cat-scaleup{background:var(--cat-scaleup);}
+  .swatch.cat-other{background:var(--cat-other);}
+
+  /* ===== toolbar ===== */
+  .toolbar{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap;}
+  .btn{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--paper);
+    border:1px solid var(--ink);color:var(--ink);padding:7px 12px;border-radius:6px;cursor:pointer;
+  }
+  .btn:hover{background:var(--ink);color:var(--paper);}
+  .btn.ghost{border:1px solid var(--line);color:var(--ink-soft);}
+  .btn.ghost:hover{background:var(--paper);color:var(--rust);border-color:var(--rust);}
+  .btn.danger{border:1px solid var(--rust);color:var(--rust);background:var(--paper);display:none;}
+  .btn.danger:hover{background:var(--rust);color:#fff;}
+  .btn.danger.show{display:inline-flex;align-items:center;gap:6px;}
+  .toolbar .spacer{flex:1;}
+  .savepill{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--solid);opacity:0;transition:opacity .3s;}
+  .savepill.show{opacity:1;}
+
+  /* lock switch */
+  .lockrow{display:flex;align-items:center;gap:10px;}
+  .switch{position:relative;width:42px;height:24px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{position:absolute;inset:0;background:var(--line);border-radius:24px;cursor:pointer;transition:.2s;}
+  .slider::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:var(--paper);border-radius:50%;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.25);}
+  .switch input:checked + .slider{background:var(--solid);}
+  .switch input:checked + .slider::before{transform:translateX(18px);}
+  .lock-label{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);}
+  body.edit-mode .lock-label{color:var(--solid);}
+  .lock-hint{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);
+    display:flex;align-items:center;gap:6px;
+  }
+  body.edit-mode .lock-hint .locked-txt{display:none;}
+  body:not(.edit-mode) .lock-hint .unlocked-txt{display:none;}
+
+  .edit-only{display:none;}
+  body.edit-mode .edit-only{display:inline-flex;}
+
+  /* ===== Layout ===== */
+  .board{
+    display:flex;background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(28,38,32,.04);transition:box-shadow .2s;
+  }
+  body.edit-mode .board{box-shadow:0 0 0 2px var(--solid-fill), 0 1px 2px rgba(28,38,32,.04);}
+  .panel-left{flex-shrink:0;width:var(--left-w);border-right:1px solid var(--ink);}
+  .panel-right{flex:1;overflow-x:auto;position:relative;}
+  .panel-right::-webkit-scrollbar{height:9px;}
+  .panel-right::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px;}
+
+  .lhead{
+    height:var(--header-h);display:flex;align-items:flex-end;padding:0 10px 8px;
+    border-bottom:1px solid var(--ink);background:var(--paper);gap:8px;
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);
+    letter-spacing:.04em;text-transform:uppercase;
+  }
+  .lhead .c-check{width:18px;flex-shrink:0;}
+  .lhead .c-label{flex:1;min-width:120px;}
+  .lhead .c-req{width:190px;flex-shrink:0;}
+  .lhead .c-pic{width:64px;flex-shrink:0;}
+  .lhead .c-move{width:40px;flex-shrink:0;}
+  .lhead .c-edit{width:26px;flex-shrink:0;}
+
+  .rhead{height:var(--header-h);}
+  .rhead .months{display:flex;height:32px;}
+  .rhead .month{
+    width:calc(var(--col-w)*4);flex-shrink:0;border-right:1px solid var(--ink);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;
+    background:var(--line-soft);
+  }
+  .rhead .weeks{display:flex;height:calc(var(--header-h) - 32px);}
+  .rhead .wk{
+    width:var(--col-w);flex-shrink:0;border-right:1px dotted var(--line);position:relative;
+    display:flex;align-items:flex-start;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--ink-soft);padding-top:3px;
+  }
+  .rhead .wk::before{content:"";position:absolute;top:0;left:50%;width:1px;height:5px;background:var(--ink-soft);}
+
+  .group-head{
+    display:flex;align-items:center;gap:8px;padding:0 10px;height:32px;
+    background:var(--line-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  }
+  .group-head .g-check{width:16px;flex-shrink:0;}
+  .group-head .g-title{flex:1;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12.5px;color:var(--ink);cursor:default;}
+  .icon-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;background:none;border:1px solid var(--line);color:var(--ink-soft);
+    width:22px;height:22px;border-radius:5px;cursor:pointer;line-height:1;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  }
+  .icon-btn:hover{border-color:var(--solid);color:var(--solid);}
+  .icon-btn.add{width:auto;padding:0 8px;gap:4px;font-size:10px;}
+  .icon-btn:disabled{opacity:.3;cursor:not-allowed;}
+  .icon-btn:disabled:hover{border-color:var(--line);color:var(--ink-soft);}
+  .move-group{gap:3px;flex-shrink:0;}
+  .move-group.edit-only{display:none;}
+  body.edit-mode .move-group.edit-only{display:flex;}
+
+  .rgroup-head{height:32px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--line-soft);}
+
+  .lrow{
+    display:flex;align-items:center;gap:8px;height:var(--row-h);padding:0 10px 0 22px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .lrow .r-check{width:16px;flex-shrink:0;}
+  .lrow .r-label{flex:1;min-width:120px;font-size:11.5px;color:var(--ink);cursor:default;}
+  .lrow .r-req{
+    width:190px;flex-shrink:0;font-size:10.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .lrow .r-pic{
+    width:64px;flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  input.pic-input{
+    width:64px;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 5px;border:1px solid transparent;
+    border-radius:4px;background:transparent;color:var(--ink);
+  }
+  body.edit-mode input.pic-input{border-color:var(--line);background:#fff;}
+  input.pic-input:focus{outline:none;border-color:var(--solid);background:#fff;}
+
+  .rrow{display:flex;height:var(--row-h);border-bottom:1px solid var(--line-soft);position:relative;}
+  .rrow .cell{width:var(--col-w);flex-shrink:0;border-right:1px dotted var(--line-soft);}
+  .bar{
+    position:absolute;top:9px;height:20px;border-radius:5px;display:flex;align-items:center;padding:0 8px;
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;white-space:nowrap;overflow:hidden;cursor:default;
+  }
+  .bar.solid.cat-ns{background:var(--cat-ns);color:#F3F7F4;border:1px solid var(--cat-ns);}
+  .bar.dashed.cat-ns{background:var(--cat-ns-fill);color:#1F4F41;border:2px dashed var(--cat-ns);}
+  .bar.solid.cat-scaleup{background:var(--cat-scaleup);color:#F3F7F4;border:1px solid var(--cat-scaleup);}
+  .bar.dashed.cat-scaleup{background:var(--cat-scaleup-fill);color:#1B3E6B;border:2px dashed var(--cat-scaleup);}
+  .bar.solid.cat-other{background:var(--cat-other);color:#F3F7F4;border:1px solid var(--cat-other);}
+  .bar.dashed.cat-other{background:var(--cat-other-fill);color:#1C2620;border:2px dashed var(--cat-other);}
+  .bar:hover{filter:brightness(1.1);z-index:5;box-shadow:0 2px 6px rgba(28,38,32,.18);}
+
+  .today-line{position:absolute;top:0;width:2px;background:var(--rust);z-index:6;pointer-events:none;}
+  .today-tag{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--rust);white-space:nowrap;}
+
+  .footnote{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);line-height:1.6;}
+  .footnote b{color:var(--ink);}
+
+  /* ===== Note tooltip (hover / click on task in edit mode) ===== */
+  .note-tip{
+    position:absolute;max-width:280px;background:var(--ink);color:var(--paper);font-family:'IBM Plex Sans',sans-serif;
+    font-size:11.5px;line-height:1.45;padding:9px 11px;border-radius:7px;box-shadow:0 6px 18px rgba(0,0,0,.25);
+    z-index:80;opacity:0;pointer-events:none;transition:opacity .12s;
+  }
+  .note-tip.show{opacity:1;}
+  .note-tip .tip-label{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#9FB8AA;display:block;margin-bottom:3px;}
+
+  /* ===== Modal ===== */
+  .overlay{
+    position:fixed;inset:0;background:rgba(28,38,32,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--paper);border-radius:12px;width:100%;max-width:440px;padding:22px 22px 18px;
+    box-shadow:0 12px 40px rgba(28,38,32,.28);border:1px solid var(--line);max-height:88vh;overflow-y:auto;
+  }
+  .modal h2{
+    font-family:'Space Grotesk',sans-serif;font-size:16px;margin:0 0 16px;font-weight:600;
+  }
+  .field{margin-bottom:13px;}
+  .field label{
+    display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;
+    letter-spacing:.05em;color:var(--ink-soft);margin-bottom:4px;
+  }
+  .field input[type=text], .field select, .field textarea{
+    width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:8px 10px;
+    border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none;border-color:var(--solid);}
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .modal-actions{display:flex;align-items:center;gap:8px;margin-top:18px;}
+  .modal-actions .spacer{flex:1;}
+  .modal-actions .btn-primary{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;background:var(--solid);color:#fff;border:1px solid var(--solid);
+    padding:8px 16px;border-radius:6px;cursor:pointer;
+  }
+  .modal-actions .btn-cancel{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;background:none;color:var(--ink-soft);border:1px solid var(--line);
+    padding:8px 14px;border-radius:6px;cursor:pointer;
+  }
+  .modal-actions .btn-delete{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;background:none;color:var(--rust);border:1px solid transparent;
+    padding:8px 6px;border-radius:6px;cursor:pointer;
+  }
+  .modal-actions .btn-delete:hover{border-color:var(--rust);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="titleblock">
+    <div>
+      <p class="eyebrow">Procurement &amp; Multi-project Timeline</p>
+      <h1>Project Schedule &amp; Progress</h1>
+      <p class="updated-tag" id="updatedTag"><span class="dot"></span>Last updated: —</p>
+      <p class="sync-tag" id="syncTag">● Connecting…</p>
+    </div>
+    <div class="legend">
+      <div class="legend-group">
+        <span class="legend-title">Project</span>
+        <div class="legend-item"><span class="swatch cat-ns"></span> N–S fertilizer</div>
+        <div class="legend-item"><span class="swatch cat-scaleup"></span> Scale-up</div>
+        <div class="legend-item"><span class="swatch cat-other"></span> Shared / other</div>
+      </div>
+      <div class="legend-group">
+        <span class="legend-title">Status</span>
+        <div class="legend-item"><span class="swatch solid"></span> In progress</div>
+        <div class="legend-item"><span class="swatch dashed"></span> Planned</div>
+        <div class="legend-item"><span class="swatch today"></span> Today</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="lockrow">
+      <label class="switch">
+        <input type="checkbox" id="editToggle">
+        <span class="slider"></span>
+      </label>
+      <span class="lock-label">Edit mode</span>
+    </div>
+    <span class="lock-hint">
+      <span class="locked-txt">🔒 View only — turn on Edit mode (password required) to make changes</span>
+      <span class="unlocked-txt">✎ Edit mode on — use the pencil icons to change items, ▲▼ to reorder, hover/click a task to see its note</span>
+    </span>
+    <button class="btn edit-only" onclick="openGroupModal(null)">+ Add task group</button>
+    <button class="btn danger" id="deleteSelectedBtn" onclick="deleteSelected()">🗑 Delete selected</button>
+    <div class="spacer"></div>
+    <span class="savepill" id="savePill">✓ Saved</span>
+    <button class="btn ghost edit-only" onclick="resetData()">Reset to default</button>
+  </div>
+
+  <div class="board">
+    <div class="panel-left" id="panelLeft">
+      <div class="lhead">
+        <span class="c-check edit-only"></span>
+        <span class="c-label">Task / Sub-step</span>
+        <span class="c-req">Requirement</span>
+        <span class="c-pic">PIC</span>
+        <span class="c-move edit-only">Order</span>
+        <span class="c-edit"></span>
+      </div>
+    </div>
+    <div class="panel-right" id="panelRight">
+      <div class="rhead" id="rheadTarget">
+        <div class="months"></div>
+        <div class="weeks"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="footnote">
+    <b>Note:</b> Phase 1A (material characterization) actually started in the 4th week of Jun-2026, before this chart's start date; its bar is clipped to begin at the 1st week of Jul-2026. &nbsp;•&nbsp;
+    The board is locked by default. Turn on <b>Edit mode</b> above and enter the password to reveal checkboxes, pencil icons, and delete controls — every change still asks for confirmation. &nbsp;•&nbsp;
+    In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor. Use the <b>▲ / ▼</b> buttons to reorder task groups and sub-steps.
+  </p>
+
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<!-- Note tooltip -->
+<div class="note-tip" id="noteTip"><span class="tip-label">Note</span><span id="noteTipText"></span></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
+
+const MONTHS = ["Jul-26","Aug-26","Sep-26","Oct-26","Nov-26","Dec-26","Jan-27","Feb-27"];
+const TOTAL_COLS = MONTHS.length * 4;
+const colW = 30;
+const STORAGE_KEY = 'labScheduleDataV4';
+const UPDATED_KEY = 'labScheduleUpdatedV4';
+const EDIT_PASSWORD = '5656';
+
+const WEEK_OPTIONS = [];
+MONTHS.forEach((m,mi)=>{
+  const mName = m.split('-')[0];
+  for(let w=1;w<=4;w++){ WEEK_OPTIONS.push({value: mi*4+w, label: mName+' W'+w}); }
+});
+function weekLabel(v){ const o = WEEK_OPTIONS.find(o=>o.value===v); return o?o.label:v; }
+
+function uid(){ return 'id'+Math.random().toString(36).slice(2,10); }
+
+const CATEGORY_LABELS = { ns:'N–S fertilizer project', scaleup:'Scale-up project', other:'Shared / other project' };
+
+const DEFAULT_DATA = [
+  { id:uid(), title:"1. Fume Hood Procurement", rows:[
+    {id:uid(), label:"Quote (weeks 1–3)", start:1, span:3, style:"solid", category:"other", requirement:"", pic:"", note:"Requesting quotations"},
+    {id:uid(), label:"Onsite check (mid Jul)", start:2, span:2, style:"solid", category:"other", requirement:"", pic:"", note:"Site inspection scheduled"},
+    {id:uid(), label:"Confirm order & 1st payment", start:5, span:1, style:"dashed", category:"other", requirement:"", pic:"", note:"Planned: wk1 Aug"},
+    {id:uid(), label:"CBT facility preparation", start:5, span:8, style:"solid", category:"other", requirement:"", pic:"", note:"Site prep, Aug–Sep"},
+    {id:uid(), label:"Installation (~2 mo. after payment)", start:12, span:2, style:"dashed", category:"other", requirement:"", pic:"", note:"Planned: 4wk Sep–1wk Oct"},
+  ]},
+  { id:uid(), title:"2. Mixing Tank Procurement", rows:[
+    {id:uid(), label:"Quote (weeks 1–3)", start:1, span:3, style:"solid", category:"other", requirement:"", pic:"", note:"Requesting quotations"},
+    {id:uid(), label:"Confirm order & 1st payment", start:5, span:1, style:"dashed", category:"other", requirement:"", pic:"", note:"Planned: wk1 Aug"},
+  ]},
+  { id:uid(), title:"3. Weight Scale Procurement", rows:[
+    {id:uid(), label:"Quote & confirm order", start:3, span:2, style:"solid", category:"other", requirement:"", pic:"", note:"wk3–4 Jul"},
+  ]},
+  { id:uid(), title:"4. pH Meter Procurement", rows:[
+    {id:uid(), label:"Quote & confirm order", start:3, span:2, style:"solid", category:"other", requirement:"", pic:"", note:"wk3–4 Jul"},
+  ]},
+  { id:uid(), title:"5. Neutralized Materials (100–200 L)", rows:[
+    {id:uid(), label:"Preparation", start:4, span:2, style:"solid", category:"other", requirement:"", pic:"", note:"wk4 Jul – wk1 Aug"},
+  ]},
+  { id:uid(), title:"6. Evaporator (Outsource)", rows:[
+    {id:uid(), label:"Quote & confirm order", start:3, span:2, style:"dashed", category:"other", requirement:"", pic:"", note:"Planned: wk3–4 Jul"},
+    {id:uid(), label:"Proceeding — expect finish Aug", start:6, span:3, style:"dashed", category:"other", requirement:"", pic:"", note:"Planned: wk2–4 Aug"},
+  ]},
+  { id:uid(), title:"7. N–S Fertilizer Project — Phase 1A", rows:[
+    {id:uid(), label:"Material characterization *", start:1, span:6, style:"solid", category:"ns", requirement:"", pic:"", note:"Actually started wk4 Jun (see note)"},
+    {id:uid(), label:"Reviewing agreement", start:2, span:7, style:"solid", category:"ns", requirement:"", pic:"", note:"wk2 Jul – wk4 Aug"},
+  ]},
+  { id:uid(), title:"8. N–S Fertilizer Project — Phase 2A", rows:[
+    {id:uid(), label:"Seeding (germination test) / Pot trial", start:9, span:1, style:"dashed", category:"ns", requirement:"", pic:"", note:"Planned: wk1 Sep"},
+  ]},
+];
+
+/* =====================================================================
+   REAL-TIME SYNC — Firebase Realtime Database (modular v9+ SDK)
+   ---------------------------------------------------------------------
+   Uses the "modular" Firebase SDK (import syntax) since that's what
+   the Firebase console now generates by default — loaded via
+   <script type="module"> at the top of this file, no npm/bundler
+   needed. FIREBASE_CONFIG below is filled in with your project's
+   values from the "Add Firebase SDK" screen.
+
+   Still to do if you haven't already:
+   1. Firebase console > Build > Realtime Database > Create Database
+      > start in LOCKED mode.
+   2. Go to the "Rules" tab and publish:
+      { "rules": { "labScheduleDashboard": { ".read": true, ".write": true } } }
+   3. That's it — everyone who opens this HTML file reads/writes the
+      same database node in real time.
+
+   Note: a Firebase web apiKey (below) is not a secret — it just
+   identifies which project to talk to. Actual access control lives in
+   the Database Rules from step 2, so keep those scoped sensibly.
+===================================================================== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBNk8A6JygV8TA6IFhxM7gV4t05F9PUXq4",
+  authDomain: "cbt-th-5103d.firebaseapp.com",
+  projectId: "cbt-th-5103d",
+  storageBucket: "cbt-th-5103d.firebasestorage.app",
+  messagingSenderId: "775489791813",
+  appId: "1:775489791813:web:7cee10c9c9f61521fa802c",
+  // TODO: paste the databaseURL from Realtime Database > Data tab, e.g.:
+  // "https://cbt-th-5103d-default-rtdb.asia-southeast1.firebasedatabase.app"
+  databaseURL: "https://project-schedule-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/"
+};
+const DB_PATH = 'labScheduleDashboard/v4'; // change this if you want a fresh/separate dataset
+
+let data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+let selectedGroups = new Set();
+let selectedRows = new Set();
+let firebaseEnabled = false;
+let dbRef = null;
+
+function setSyncTag(state, text){
+  const el = document.getElementById('syncTag');
+  el.className = 'sync-tag ' + state;
+  el.textContent = text;
+}
+
+function loadLocalFallback(){
+  try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function initFirebase(){
+  const looksConfigured = FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('YOUR_')
+                        && FIREBASE_CONFIG.databaseURL && !FIREBASE_CONFIG.databaseURL.includes('YOUR_');
+  if(!looksConfigured){
+    data = loadLocalFallback();
+    setSyncTag('warn', '● Local only — Firebase not configured (see comments in the HTML)');
+    render(); renderUpdatedTag();
+    return;
+  }
+  try{
+    const app = initializeApp(FIREBASE_CONFIG);
+    const db = getDatabase(app);
+    dbRef = ref(db, DB_PATH);
+    setSyncTag('warn', '● Connecting…');
+    onValue(dbRef, snap=>{
+      const val = snap.val();
+      if(val && val.data){
+        data = val.data;
+      } else {
+        // nothing on the server yet — seed it with the default schedule
+        set(dbRef, { data: data, updatedAt: new Date().toISOString() });
+      }
+      render();
+      renderUpdatedTag(val ? val.updatedAt : null);
+      setSyncTag('ok', '● Synced — live with everyone editing this dashboard');
+    }, err=>{
+      console.error('Firebase read failed:', err);
+      data = loadLocalFallback();
+      firebaseEnabled = false;
+      render(); renderUpdatedTag();
+      setSyncTag('err', '● Sync error — showing this browser\'s local copy only');
+    });
+    firebaseEnabled = true;
+  }catch(e){
+    console.error('Firebase init failed:', e);
+    data = loadLocalFallback();
+    render(); renderUpdatedTag();
+    setSyncTag('err', '● Sync error — showing this browser\'s local copy only');
+  }
+}
+
+function saveData(){
+  const now = new Date().toISOString();
+  if(firebaseEnabled && dbRef){
+    set(dbRef, { data: data, updatedAt: now }).catch(err=>{
+      console.error('Firebase write failed:', err);
+      setSyncTag('err', '● Save failed — check your connection and try again');
+    });
+  } else {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(UPDATED_KEY, now);
+    renderUpdatedTag(now);
+  }
+  const pill = document.getElementById('savePill');
+  pill.classList.add('show');
+  clearTimeout(saveData._t);
+  saveData._t = setTimeout(()=>pill.classList.remove('show'), 1200);
+}
+function resetData(){
+  if(!confirm('Reset all data to the default schedule? This clears everyone\'s edits.')) return;
+  data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  if(!firebaseEnabled) localStorage.removeItem(STORAGE_KEY);
+  saveData();
+  render();
+}
+function renderUpdatedTag(isoOverride){
+  let iso = isoOverride;
+  if(!iso){
+    iso = firebaseEnabled ? null : localStorage.getItem(UPDATED_KEY);
+  }
+  const d = iso ? new Date(iso) : new Date();
+  const txt = d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) +
+              ' · ' + d.toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+  document.getElementById('updatedTag').innerHTML = '<span class="dot"></span>Last updated: ' + txt;
+}
+
+/* ---------- Edit mode toggle (password gated) ---------- */
+const editToggle = document.getElementById('editToggle');
+editToggle.addEventListener('change', e=>{
+  if(e.target.checked){
+    const pass = prompt('Enter password to enable Edit mode:');
+    if(pass !== EDIT_PASSWORD){
+      if(pass !== null) alert('Incorrect password.');
+      e.target.checked = false;
+      return;
+    }
+  }
+  document.body.classList.toggle('edit-mode', e.target.checked);
+  selectedGroups.clear(); selectedRows.clear();
+  hideNoteTip();
+  render();
+});
+
+/* ---------- Note tooltip ---------- */
+const noteTip = document.getElementById('noteTip');
+const noteTipText = document.getElementById('noteTipText');
+let pinnedTip = null;
+function showNoteTip(el, note){
+  if(!document.body.classList.contains('edit-mode')) return;
+  noteTipText.textContent = (note && note.trim()) ? note : '(No note added)';
+  const rect = el.getBoundingClientRect();
+  const top = rect.bottom + window.scrollY + 6;
+  let left = rect.left + window.scrollX;
+  if(left + 280 > window.scrollX + document.documentElement.clientWidth) left = window.scrollX + document.documentElement.clientWidth - 290;
+  noteTip.style.top = top + 'px';
+  noteTip.style.left = Math.max(8, left) + 'px';
+  noteTip.classList.add('show');
+}
+function hideNoteTip(){ noteTip.classList.remove('show'); pinnedTip = null; }
+function attachNoteHover(el, note){
+  el.addEventListener('mouseenter', ()=>{ if(!pinnedTip) showNoteTip(el, note); });
+  el.addEventListener('mouseleave', ()=>{ if(!pinnedTip) hideNoteTip(); });
+  el.addEventListener('click', (ev)=>{
+    if(!document.body.classList.contains('edit-mode')) return;
+    ev.stopPropagation();
+    if(pinnedTip === el){ hideNoteTip(); return; }
+    pinnedTip = el;
+    showNoteTip(el, note);
+  });
+}
+document.addEventListener('click', ()=>{ if(pinnedTip) hideNoteTip(); });
+
+/* ---------- Selection (bulk delete) ---------- */
+function updateSelectionUI(){
+  const btn = document.getElementById('deleteSelectedBtn');
+  const n = selectedGroups.size + selectedRows.size;
+  btn.classList.toggle('show', n>0);
+  btn.textContent = n>0 ? ('🗑 Delete selected (' + n + ')') : '🗑 Delete selected';
+}
+function deleteSelected(){
+  const n = selectedGroups.size + selectedRows.size;
+  if(n===0) return;
+  if(!confirm('Delete ' + n + ' selected item(s)? This removes whole task groups you checked, plus any individually checked sub-steps.')) return;
+  data = data.filter(g=>!selectedGroups.has(g.id));
+  data.forEach(g=>{ g.rows = g.rows.filter(r=>!selectedRows.has(r.id)); });
+  selectedGroups.clear(); selectedRows.clear();
+  saveData(); render();
+}
+
+/* ---------- Reordering ---------- */
+function moveGroup(gid, dir){
+  const idx = data.findIndex(g=>g.id===gid);
+  const newIdx = idx + dir;
+  if(idx===-1 || newIdx<0 || newIdx>=data.length) return;
+  const [item] = data.splice(idx,1);
+  data.splice(newIdx,0,item);
+  saveData(); render();
+}
+function moveRow(gid, rid, dir){
+  const g = data.find(g=>g.id===gid);
+  if(!g) return;
+  const idx = g.rows.findIndex(r=>r.id===rid);
+  const newIdx = idx + dir;
+  if(idx===-1 || newIdx<0 || newIdx>=g.rows.length) return;
+  const [item] = g.rows.splice(idx,1);
+  g.rows.splice(newIdx,0,item);
+  saveData(); render();
+}
+
+/* ---------- Modal engine ---------- */
+const overlay = document.getElementById('overlay');
+const modalBox = document.getElementById('modalBox');
+function closeModal(){ overlay.classList.remove('show'); modalBox.innerHTML=''; }
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
+
+function openGroupModal(gid){
+  const isNew = gid===null;
+  const g = isNew ? null : data.find(g=>g.id===gid);
+  modalBox.innerHTML = `
+    <h2>${isNew ? 'Add task group' : 'Edit task group'}</h2>
+    <div class="field">
+      <label>Group title</label>
+      <input type="text" id="m-title" value="${isNew ? '' : g.title.replace(/"/g,'&quot;')}" placeholder="e.g. 9. New equipment procurement">
+    </div>
+    <div class="modal-actions">
+      ${isNew ? '' : '<button class="btn-delete" id="m-delete">Delete group</button>'}
+      <div class="spacer"></div>
+      <button class="btn-cancel" id="m-cancel">Cancel</button>
+      <button class="btn-primary" id="m-save">${isNew?'Add group':'Save changes'}</button>
+    </div>
+  `;
+  overlay.classList.add('show');
+  document.getElementById('m-cancel').onclick = closeModal;
+  if(!isNew) document.getElementById('m-delete').onclick = ()=>{
+    if(!confirm('Delete this entire task group and all its sub-steps?')) return;
+    data = data.filter(x=>x.id!==gid);
+    saveData(); render(); closeModal();
+  };
+  document.getElementById('m-save').onclick = ()=>{
+    const title = document.getElementById('m-title').value.trim();
+    if(!title){ alert('Please enter a group title.'); return; }
+    if(isNew){
+      data.push({id:uid(), title, rows:[{id:uid(), label:"New sub-step", start:1, span:1, style:"solid", category:"other", requirement:"", pic:"", note:""}]});
+    } else {
+      g.title = title;
+    }
+    saveData(); render(); closeModal();
+  };
+}
+
+function openRowModal(gid, rid){
+  const isNew = rid===null;
+  const g = data.find(g=>g.id===gid);
+  const r = isNew ? null : g.rows.find(r=>r.id===rid);
+  const fromVal = isNew ? 1 : r.start;
+  const toVal = isNew ? 1 : (r.start + r.span - 1);
+  const styleVal = isNew ? 'solid' : r.style;
+  const catVal = isNew ? 'other' : (r.category || 'other');
+  modalBox.innerHTML = `
+    <h2>${isNew ? 'Add sub-step' : 'Edit sub-step'}</h2>
+    <div class="field">
+      <label>Label</label>
+      <input type="text" id="m-label" value="${isNew ? '' : r.label.replace(/"/g,'&quot;')}" placeholder="e.g. Quote & confirm order">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>From</label>
+        <select id="m-from">${WEEK_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===fromVal?'selected':''}>${o.label}</option>`).join('')}</select>
+      </div>
+      <div class="field">
+        <label>To</label>
+        <select id="m-to">${WEEK_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===toVal?'selected':''}>${o.label}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Status</label>
+        <select id="m-style">
+          <option value="solid" ${styleVal==='solid'?'selected':''}>Solid — in progress</option>
+          <option value="dashed" ${styleVal==='dashed'?'selected':''}>Dashed — planned</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Progress colour / project</label>
+        <select id="m-cat">
+          <option value="ns" ${catVal==='ns'?'selected':''}>Green — N–S fertilizer project</option>
+          <option value="scaleup" ${catVal==='scaleup'?'selected':''}>Dark blue — Scale-up project</option>
+          <option value="other" ${catVal==='other'?'selected':''}>Black — Shared / other project</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Requirement (detail / description of this sub-step)</label>
+      <textarea id="m-requirement" rows="2" placeholder="e.g. Need 2 supplier quotations before confirming order">${isNew ? '' : (r.requirement||'')}</textarea>
+    </div>
+    <div class="field">
+      <label>PIC (person in charge — nickname)</label>
+      <input type="text" id="m-pic" value="${isNew ? '' : (r.pic||'').replace(/"/g,'&quot;')}" placeholder="e.g. Bee">
+    </div>
+    <div class="field">
+      <label>Note</label>
+      <textarea id="m-note" rows="2" placeholder="Optional status note">${isNew ? '' : (r.note||'')}</textarea>
+    </div>
+    <div class="modal-actions">
+      ${isNew ? '' : '<button class="btn-delete" id="m-delete">Delete step</button>'}
+      <div class="spacer"></div>
+      <button class="btn-cancel" id="m-cancel">Cancel</button>
+      <button class="btn-primary" id="m-save">${isNew?'Add step':'Save changes'}</button>
+    </div>
+  `;
+  overlay.classList.add('show');
+  document.getElementById('m-cancel').onclick = closeModal;
+  if(!isNew) document.getElementById('m-delete').onclick = ()=>{
+    if(!confirm('Delete this sub-step?')) return;
+    g.rows = g.rows.filter(x=>x.id!==rid);
+    saveData(); render(); closeModal();
+  };
+  document.getElementById('m-save').onclick = ()=>{
+    const label = document.getElementById('m-label').value.trim();
+    if(!label){ alert('Please enter a label.'); return; }
+    let from = parseInt(document.getElementById('m-from').value);
+    let to = parseInt(document.getElementById('m-to').value);
+    if(to < from) to = from;
+    const style = document.getElementById('m-style').value;
+    const category = document.getElementById('m-cat').value;
+    const requirement = document.getElementById('m-requirement').value.trim();
+    const pic = document.getElementById('m-pic').value.trim();
+    const note = document.getElementById('m-note').value.trim();
+    if(isNew){
+      g.rows.push({id:uid(), label, start:from, span:(to-from+1), style, category, requirement, pic, note});
+    } else {
+      r.label = label; r.start = from; r.span = (to-from+1); r.style = style;
+      r.category = category; r.requirement = requirement; r.pic = pic; r.note = note;
+    }
+    saveData(); render(); closeModal();
+  };
+}
+
+/* ---------- Render ---------- */
+function buildHeader(){
+  const monthsEl = document.querySelector('.rhead .months');
+  const weeksEl = document.querySelector('.rhead .weeks');
+  monthsEl.innerHTML=''; weeksEl.innerHTML='';
+  MONTHS.forEach(m=>{
+    const d = document.createElement('div');
+    d.className='month'; d.style.width=(colW*4)+'px'; d.textContent=m;
+    monthsEl.appendChild(d);
+  });
+  for(let i=1;i<=TOTAL_COLS;i++){
+    const w = document.createElement('div');
+    w.className='wk'; w.style.width=colW+'px'; w.textContent='W'+(((i-1)%4)+1);
+    weeksEl.appendChild(w);
+  }
+}
+
+function render(){
+  selectedGroups.clear(); selectedRows.clear();
+  const panelLeft = document.getElementById('panelLeft');
+  const panelRight = document.getElementById('panelRight');
+  [...panelLeft.querySelectorAll(':scope > *:not(.lhead)')].forEach(e=>e.remove());
+  [...panelRight.querySelectorAll(':scope > *:not(.rhead)')].forEach(e=>e.remove());
+
+  data.forEach((g, gIdx)=>{
+    const lgh = document.createElement('div');
+    lgh.className='group-head';
+    lgh.innerHTML = `
+      <span class="g-check edit-only"><input type="checkbox" title="Select whole group for deletion"></span>
+      <span class="g-title">${g.title}</span>
+      <span class="move-group edit-only">
+        <button class="icon-btn move-up" title="Move group up" ${gIdx===0?'disabled':''}>▲</button>
+        <button class="icon-btn move-down" title="Move group down" ${gIdx===data.length-1?'disabled':''}>▼</button>
+      </span>
+      <button class="icon-btn add edit-only" title="Add sub-step">+ step</button>
+      <button class="icon-btn edit-only" title="Edit / delete group">✎</button>
+    `;
+    const gCheck = lgh.querySelector('.g-check input');
+    gCheck.addEventListener('change', ()=>{
+      if(gCheck.checked) selectedGroups.add(g.id); else selectedGroups.delete(g.id);
+      updateSelectionUI();
+    });
+    lgh.querySelector('.move-up').addEventListener('click', ()=>moveGroup(g.id, -1));
+    lgh.querySelector('.move-down').addEventListener('click', ()=>moveGroup(g.id, 1));
+    const [addBtn, editBtn] = lgh.querySelectorAll('.icon-btn.add, .group-head > .icon-btn:not(.add):not(.move-up):not(.move-down)');
+    lgh.querySelector('.icon-btn.add').addEventListener('click', ()=>openRowModal(g.id, null));
+    lgh.querySelectorAll('.icon-btn').forEach(b=>{
+      if(b.textContent.trim()==='✎') b.addEventListener('click', ()=>openGroupModal(g.id));
+    });
+    panelLeft.appendChild(lgh);
+
+    const rgh = document.createElement('div');
+    rgh.className='rgroup-head';
+    rgh.style.width=(TOTAL_COLS*colW)+'px';
+    panelRight.appendChild(rgh);
+
+    g.rows.forEach((r, rIdx)=>{
+      const cat = r.category || 'other';
+      const lrow = document.createElement('div');
+      lrow.className='lrow';
+      lrow.innerHTML = `
+        <span class="r-check edit-only"><input type="checkbox" title="Select this sub-step for deletion"></span>
+        <span class="r-label">${r.label}</span>
+        <span class="r-req" title="${(r.requirement||'').replace(/"/g,'&quot;')}">${r.requirement ? r.requirement : '—'}</span>
+        <span class="r-pic"></span>
+        <span class="move-group edit-only">
+          <button class="icon-btn move-up" title="Move step up" ${rIdx===0?'disabled':''}>▲</button>
+          <button class="icon-btn move-down" title="Move step down" ${rIdx===g.rows.length-1?'disabled':''}>▼</button>
+        </span>
+        <button class="icon-btn edit-only" title="Edit sub-step">✎</button>
+      `;
+      const rCheck = lrow.querySelector('.r-check input');
+      rCheck.addEventListener('change', ()=>{
+        if(rCheck.checked) selectedRows.add(r.id); else selectedRows.delete(r.id);
+        updateSelectionUI();
+      });
+      lrow.querySelector('.move-up').addEventListener('click', ()=>moveRow(g.id, r.id, -1));
+      lrow.querySelector('.move-down').addEventListener('click', ()=>moveRow(g.id, r.id, 1));
+      const picSpan = lrow.querySelector('.r-pic');
+      const picInput = document.createElement('input');
+      picInput.type='text'; picInput.className='pic-input'; picInput.value = r.pic || '';
+      picInput.placeholder='—';
+      picInput.title = 'Person in charge (nickname)';
+      picInput.readOnly = true;
+      picInput.addEventListener('focus', ()=>{ if(!document.body.classList.contains('edit-mode')) picInput.blur(); });
+      picSpan.appendChild(picInput);
+      function syncPicEditable(){ picInput.readOnly = !document.body.classList.contains('edit-mode'); }
+      syncPicEditable();
+      picInput.addEventListener('change', ()=>{
+        r.pic = picInput.value.trim();
+        saveData();
+      });
+      lrow.querySelector('button[title="Edit sub-step"]').addEventListener('click', ()=>openRowModal(g.id, r.id));
+      attachNoteHover(lrow.querySelector('.r-label'), r.note);
+      panelLeft.appendChild(lrow);
+
+      const rrow = document.createElement('div');
+      rrow.className='rrow';
+      rrow.style.width=(TOTAL_COLS*colW)+'px';
+      for(let c=0;c<TOTAL_COLS;c++){
+        const cell=document.createElement('div');
+        cell.className='cell'; cell.style.width=colW+'px';
+        rrow.appendChild(cell);
+      }
+      const bar=document.createElement('div');
+      bar.className='bar '+r.style+' cat-'+cat;
+      bar.style.left=((r.start-1)*colW+2)+'px';
+      bar.style.width=(r.span*colW-4)+'px';
+      bar.title=r.label+' — '+(r.style==='solid'?'in progress':'planned')+' · '+CATEGORY_LABELS[cat];
+      bar.textContent = r.style==='dashed' ? '···' : '';
+      attachNoteHover(bar, r.note);
+      rrow.appendChild(bar);
+      panelRight.appendChild(rrow);
+    });
+  });
+
+  updateSelectionUI();
+  drawTodayLine();
+}
+
+function drawTodayLine(){
+  const panelRight = document.getElementById('panelRight');
+  const old = panelRight.querySelector('.today-line');
+  if(old) old.remove();
+  const todayCol = 2;
+  const todayFrac = (11-8)/7;
+  const todayLeft = (todayCol-1)*colW + todayFrac*colW;
+  const totalHeight = panelRight.scrollHeight;
+  const line = document.createElement('div');
+  line.className='today-line';
+  line.style.left = todayLeft+'px';
+  line.style.height = totalHeight+'px';
+  const tag = document.createElement('div');
+  tag.className='today-tag';
+  tag.textContent='Today · 11 Jul';
+  line.appendChild(tag);
+  panelRight.appendChild(line);
+}
+
+buildHeader();
+initFirebase();
+window.addEventListener('resize', drawTodayLine);
+
+// Module scripts don't expose top-level functions globally, but the
+// static HTML uses inline onclick="..." for these entry points — so
+// attach them to window explicitly.
+window.openGroupModal = openGroupModal;
+window.deleteSelected = deleteSelected;
+window.resetData = resetData;
+</script>
+</body>
+</html>
