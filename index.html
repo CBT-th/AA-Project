@@ -132,16 +132,14 @@
   .lhead .c-move{width:40px;flex-shrink:0;}
   .lhead .c-edit{width:26px;flex-shrink:0;}
 
-  .rhead{position: sticky;
-top: 0;
-z-index: 25;height:var(--header-h);}
+.rhead{position:sticky;top:0;z-index:25;height:var(--header-h);background:var(--paper);}
   .rhead .months{display:flex;height:32px;}
   .rhead .month{
     width:calc(var(--col-w)*4);flex-shrink:0;border-right:1px solid var(--ink);border-bottom:1px solid var(--line);
     display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;
     background:var(--line-soft);
   }
-  .rhead .weeks{display:flex;height:calc(var(--header-h) - 32px);}
+.rhead .weeks{display:flex;height:calc(var(--header-h) - 32px);background:var(--paper);}
   .rhead .wk{
     width:var(--col-w);flex-shrink:0;border-right:1px dotted var(--line);position:relative;
     display:flex;align-items:flex-start;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--ink-soft);padding-top:3px;
