@@ -119,6 +119,7 @@
   .panel-right::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px;}
 
   .lhead{
+    position: sticky;top: 0;z-index: 25;
     height:var(--header-h);display:flex;align-items:flex-end;padding:0 10px 8px;
     border-bottom:1px solid var(--ink);background:var(--paper);gap:8px;
     font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);
@@ -131,7 +132,9 @@
   .lhead .c-move{width:40px;flex-shrink:0;}
   .lhead .c-edit{width:26px;flex-shrink:0;}
 
-  .rhead{height:var(--header-h);}
+  .rhead{position: sticky;
+top: 0;
+z-index: 25;height:var(--header-h);}
   .rhead .months{display:flex;height:32px;}
   .rhead .month{
     width:calc(var(--col-w)*4);flex-shrink:0;border-right:1px solid var(--ink);border-bottom:1px solid var(--line);
