@@ -319,7 +319,6 @@
     <button class="btn danger" id="deleteSelectedBtn" onclick="deleteSelected()">🗑 Delete selected</button>
     <div class="spacer"></div>
     <span class="savepill" id="savePill">✓ Saved</span>
-    <button class="btn ghost edit-only" onclick="resetData()">Reset to default</button>
   </div>
 
   <div class="board-wrap" id="boardWrap">
@@ -384,39 +383,7 @@ function uid(){ return 'id'+Math.random().toString(36).slice(2,10); }
 
 const CATEGORY_LABELS = { ns:'N–S fertilizer project', scaleup:'Scale-up project', other:'Shared / other project' };
 
-const DEFAULT_DATA = [
-  { id:uid(), title:"1. Fume Hood Procurement", rows:[
-    {id:uid(), label:"Quote (weeks 1–3)", start:1, span:3, style:"solid", category:"other", requirement:"", pic:"", note:"Requesting quotations"},
-    {id:uid(), label:"Onsite check (mid Jul)", start:2, span:2, style:"solid", category:"other", requirement:"", pic:"", note:"Site inspection scheduled"},
-    {id:uid(), label:"Confirm order & 1st payment", start:5, span:1, style:"dashed", category:"other", requirement:"", pic:"", note:"Planned: wk1 Aug"},
-    {id:uid(), label:"CBT facility preparation", start:5, span:8, style:"solid", category:"other", requirement:"", pic:"", note:"Site prep, Aug–Sep"},
-    {id:uid(), label:"Installation (~2 mo. after payment)", start:12, span:2, style:"dashed", category:"other", requirement:"", pic:"", note:"Planned: 4wk Sep–1wk Oct"},
-  ]},
-  { id:uid(), title:"2. Mixing Tank Procurement", rows:[
-    {id:uid(), label:"Quote (weeks 1–3)", start:1, span:3, style:"solid", category:"other", requirement:"", pic:"", note:"Requesting quotations"},
-    {id:uid(), label:"Confirm order & 1st payment", start:5, span:1, style:"dashed", category:"other", requirement:"", pic:"", note:"Planned: wk1 Aug"},
-  ]},
-  { id:uid(), title:"3. Weight Scale Procurement", rows:[
-    {id:uid(), label:"Quote & confirm order", start:3, span:2, style:"solid", category:"other", requirement:"", pic:"", note:"wk3–4 Jul"},
-  ]},
-  { id:uid(), title:"4. pH Meter Procurement", rows:[
-    {id:uid(), label:"Quote & confirm order", start:3, span:2, style:"solid", category:"other", requirement:"", pic:"", note:"wk3–4 Jul"},
-  ]},
-  { id:uid(), title:"5. Neutralized Materials (100–200 L)", rows:[
-    {id:uid(), label:"Preparation", start:4, span:2, style:"solid", category:"other", requirement:"", pic:"", note:"wk4 Jul – wk1 Aug"},
-  ]},
-  { id:uid(), title:"6. Evaporator (Outsource)", rows:[
-    {id:uid(), label:"Quote & confirm order", start:3, span:2, style:"dashed", category:"other", requirement:"", pic:"", note:"Planned: wk3–4 Jul"},
-    {id:uid(), label:"Proceeding — expect finish Aug", start:6, span:3, style:"dashed", category:"other", requirement:"", pic:"", note:"Planned: wk2–4 Aug"},
-  ]},
-  { id:uid(), title:"7. N–S Fertilizer Project — Phase 1A", rows:[
-    {id:uid(), label:"Material characterization *", start:1, span:6, style:"solid", category:"ns", requirement:"", pic:"", note:"Actually started wk4 Jun (see note)"},
-    {id:uid(), label:"Reviewing agreement", start:2, span:7, style:"solid", category:"ns", requirement:"", pic:"", note:"wk2 Jul – wk4 Aug"},
-  ]},
-  { id:uid(), title:"8. N–S Fertilizer Project — Phase 2A", rows:[
-    {id:uid(), label:"Seeding (germination test) / Pot trial", start:9, span:1, style:"dashed", category:"ns", requirement:"", pic:"", note:"Planned: wk1 Sep"},
-  ]},
-];
+const DEFAULT_DATA = [];
 
 /* =====================================================================
    REAL-TIME SYNC — Firebase Realtime Database (modular v9+ SDK)
@@ -526,13 +493,6 @@ function saveData(){
   pill.classList.add('show');
   clearTimeout(saveData._t);
   saveData._t = setTimeout(()=>pill.classList.remove('show'), 1200);
-}
-function resetData(){
-  if(!confirm('Reset all data to the default schedule? This clears everyone\'s edits.')) return;
-  data = JSON.parse(JSON.stringify(DEFAULT_DATA));
-  if(!firebaseEnabled) localStorage.removeItem(STORAGE_KEY);
-  saveData();
-  render();
 }
 function renderUpdatedTag(isoOverride){
   let iso = isoOverride;
@@ -988,7 +948,6 @@ window.addEventListener('resize', drawTodayLine);
 // attach them to window explicitly.
 window.openGroupModal = openGroupModal;
 window.deleteSelected = deleteSelected;
-window.resetData = resetData;
 </script>
 </body>
 </html>
