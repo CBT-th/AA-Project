@@ -21,11 +21,11 @@
     --rust:#C0472A;
 
     /* project category colors (progress bar coding) */
-    --cat-ns:#0BA12F;         /* green  = N-S fertilizer project */
+    --cat-ns:#2E6F5C;         /* green  = N-S fertilizer project */
     --cat-ns-fill:#DCEAE3;
-    --cat-scaleup:#10A2C7;    /* blue = scale-up project */
+    --cat-scaleup:#1B3E6B;    /* dark blue = scale-up project */
     --cat-scaleup-fill:#DAE4F0;
-    --cat-other:#C97A62;     /* orange = shared with other projects */
+    --cat-other:#1C2620;      /* black = shared with other projects */
     --cat-other-fill:#E6E6E2;
 
     --row-h:38px;
@@ -40,7 +40,18 @@
     background:var(--bg);
     color:var(--ink);
     font-family:'IBM Plex Sans', sans-serif;
-    padding:32px 24px 60px;
+    padding:24px 24px 20px;
+    box-sizing:border-box;
+    /* App-shell layout: the page itself never scrolls. Everything above
+       and below the table (title, legend, toolbar, footnote) keeps its
+       natural size; the table area (.board-wrap) is the ONE flexible
+       section that stretches to fill whatever space is left and handles
+       its own internal scrolling. This guarantees the header row and
+       toolbar always stay put, regardless of screen height or how much
+       data is in the table. */
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
   }
   .wrap{
     max-width:1680px;margin:0 auto;width:100%;
@@ -112,6 +123,7 @@
 
   .edit-only{display:none;}
   body.edit-mode .edit-only{display:inline-flex;}
+
   /* ===== Layout ===== */
   .board-wrap{display:flex;align-items:stretch;gap:8px;flex:1;min-height:0;}
   .board{
@@ -240,7 +252,6 @@
 
   .footnote{margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);line-height:1.5;flex-shrink:0;max-height:60px;overflow-y:auto;}
   .footnote b{color:var(--ink);}
-
 
   /* ===== Note tooltip (hover / click on task in edit mode) ===== */
   .note-tip{
@@ -398,6 +409,9 @@ function uid(){ return 'id'+Math.random().toString(36).slice(2,10); }
 
 const CATEGORY_LABELS = { ns:'N–S fertilizer project', scaleup:'Scale-up project', other:'Shared / other project' };
 
+// Intentionally blank — this file is just the template/format. All real
+// schedule data lives in Firebase; nothing here is used once Firebase is
+// connected (only as a fallback if Firebase isn't configured).
 const DEFAULT_DATA = [];
 
 /* =====================================================================
@@ -430,7 +444,7 @@ const FIREBASE_CONFIG = {
   appId: "1:775489791813:web:7cee10c9c9f61521fa802c",
   // TODO: paste the databaseURL from Realtime Database > Data tab, e.g.:
   // "https://cbt-th-5103d-default-rtdb.asia-southeast1.firebasedatabase.app"
-  databaseURL: "https://project-schedule-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/"
+  databaseURL: "https://project-schedule-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 const DB_PATH = 'labScheduleDashboard/v4'; // change this if you want a fresh/separate dataset
 
@@ -680,8 +694,8 @@ function openRowModal(gid, rid){
         <label>Progress colour / project</label>
         <select id="m-cat">
           <option value="ns" ${catVal==='ns'?'selected':''}>Green — N–S fertilizer project</option>
-          <option value="scaleup" ${catVal==='scaleup'?'selected':''}>Blueberry — Scale-up project</option>
-          <option value="other" ${catVal==='other'?'selected':''}>Orange — Shared / other project</option>
+          <option value="scaleup" ${catVal==='scaleup'?'selected':''}>Dark blue — Scale-up project</option>
+          <option value="other" ${catVal==='other'?'selected':''}>Black — Shared / other project</option>
         </select>
       </div>
     </div>
@@ -871,6 +885,18 @@ function drawTodayLine(){
   line.appendChild(tag);
   panelRight.appendChild(line);
 }
+
+/* =====================================================================
+   CUSTOM VERTICAL SCROLLBAR
+   ---------------------------------------------------------------------
+   panel-left and panel-right both use overflow-y:hidden (see CSS) — so
+   neither responds to the mouse wheel or has its own scrollbar natively.
+   Instead, THIS single scrollbar (sitting outside .board, at the right
+   edge of the whole table) is the only thing that moves them, by setting
+   .scrollTop on both panels at once. That's what makes one scrollbar
+   control both columns and sit at the outer edge instead of "belonging"
+   to panel-right.
+===================================================================== */
 function vScrollMax(){
   const right = document.getElementById('panelRight');
   return Math.max(0, right.scrollHeight - right.clientHeight);
@@ -953,10 +979,8 @@ function initVerticalScroll(){
   window.addEventListener('resize', updateVScrollThumb);
 }
 
-
-  
 buildHeader();
-initVerticalScroll();   // ← this line was missing in your original
+initVerticalScroll();
 initFirebase();
 window.addEventListener('resize', drawTodayLine);
 
