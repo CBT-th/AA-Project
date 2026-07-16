@@ -21,17 +21,19 @@
     --rust:#C0472A;
 
     /* project category colors (progress bar coding) */
-    --cat-ns:#2E6F5C;         /* green  = N-S fertilizer project */
+    --cat-ns:#0BA12F;         /* green  = N-S fertilizer project */
     --cat-ns-fill:#DCEAE3;
-    --cat-scaleup:#1B3E6B;    /* dark blue = scale-up project */
+    --cat-scaleup:#10A2C7;    /* blue = scale-up project */
     --cat-scaleup-fill:#DAE4F0;
-    --cat-other:#1C2620;      /* black = shared with other projects */
+    --cat-other:#C97A62;     /* orange = shared with other projects */
     --cat-other-fill:#E6E6E2;
 
     --row-h:38px;
     --header-h:56px;
     --col-w:30px;
-    --left-w:560px;
+    --left-w:660px;
+    --complete:#2E6F5C;
+    --accent:#8A5CC7;
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
@@ -97,12 +99,40 @@
   .btn:hover{background:var(--ink);color:var(--paper);}
   .btn.ghost{border:1px solid var(--line);color:var(--ink-soft);}
   .btn.ghost:hover{background:var(--paper);color:var(--rust);border-color:var(--rust);}
+  .btn.toggle.active{background:var(--accent);border-color:var(--accent);color:#fff;}
   .btn.danger{border:1px solid var(--rust);color:var(--rust);background:var(--paper);display:none;}
   .btn.danger:hover{background:var(--rust);color:#fff;}
   .btn.danger.show{display:inline-flex;align-items:center;gap:6px;}
   .toolbar .spacer{flex:1;}
   .savepill{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--solid);opacity:0;transition:opacity .3s;}
   .savepill.show{opacity:1;}
+
+  .filter-select{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;background:var(--paper);
+    border:1px solid var(--line);color:var(--ink-soft);padding:6px 8px;border-radius:6px;cursor:pointer;
+  }
+  .filter-select:focus{outline:none;border-color:var(--solid);}
+
+  .progress-badge{
+    display:flex;align-items:center;gap:9px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;
+    background:var(--paper);cursor:pointer;font-family:'IBM Plex Mono',monospace;
+  }
+  .progress-badge:hover{border-color:var(--solid);}
+  .progress-badge .pb-ring{width:30px;height:30px;flex-shrink:0;}
+  .progress-badge .pb-text{display:flex;flex-direction:column;line-height:1.25;}
+  .progress-badge .pb-pct{font-size:15px;font-weight:700;color:var(--ink);font-family:'Space Grotesk',sans-serif;}
+  .progress-badge .pb-label{font-size:8.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);}
+
+  .progress-pop{
+    position:absolute;top:calc(100% + 8px);right:0;background:var(--paper);border:1px solid var(--line);
+    border-radius:10px;box-shadow:0 10px 28px rgba(28,38,32,.18);padding:14px 16px;width:230px;z-index:60;
+    display:none;font-family:'IBM Plex Sans',sans-serif;
+  }
+  .progress-pop.show{display:block;}
+  .progress-pop h3{margin:0 0 10px;font-family:'Space Grotesk',sans-serif;font-size:12.5px;}
+  .progress-pop .pp-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ink-soft);margin-bottom:6px;}
+  .progress-pop .pp-row b{color:var(--ink);font-family:'IBM Plex Mono',monospace;}
+  .progress-badge-wrap{position:relative;}
 
   /* lock switch */
   .lockrow{display:flex;align-items:center;gap:10px;}
@@ -147,7 +177,7 @@
     height:100%;overflow-y:hidden;overflow-x:hidden;
   }
   .panel-right{flex:1;height:100%;overflow-x:auto;overflow-y:hidden;position:relative;}
-  .panel-right::-webkit-scrollbar{height:9px;} /* horizontal scrollbar only — stays at the bottom as before */
+  .panel-right::-webkit-scrollbar{height:9px;} /* horizontal scrollbar only — vertical is fully custom */
   .panel-right::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px;}
 
   /* Custom vertical scrollbar — sits outside .board, at the far right
@@ -165,27 +195,30 @@
   .vscroll-thumb.dragging{background:var(--solid);cursor:grabbing;}
 
   .lhead{
+    position: sticky;top: 0;z-index: 25;
     height:var(--header-h);display:flex;align-items:flex-end;padding:0 10px 8px;
     border-bottom:1px solid var(--ink);background:var(--paper);gap:8px;
     font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);
     letter-spacing:.04em;text-transform:uppercase;
-    position:sticky;top:0;z-index:25;
   }
   .lhead .c-check{width:18px;flex-shrink:0;}
   .lhead .c-label{flex:1;min-width:120px;}
-  .lhead .c-req{width:190px;flex-shrink:0;}
+  .lhead .c-req{width:170px;flex-shrink:0;}
+  .lhead .c-due{width:96px;flex-shrink:0;}
   .lhead .c-pic{width:64px;flex-shrink:0;}
+  .lhead .c-budget{width:88px;flex-shrink:0;display:none;}
+  body.show-budget .lhead .c-budget{display:block;}
   .lhead .c-move{width:40px;flex-shrink:0;}
   .lhead .c-edit{width:26px;flex-shrink:0;}
 
-  .rhead{height:var(--header-h);position:sticky;top:0;z-index:25;background:var(--paper);}
+.rhead{position:sticky;top:0;z-index:25;height:var(--header-h);background:var(--paper);}
   .rhead .months{display:flex;height:32px;}
   .rhead .month{
     width:calc(var(--col-w)*4);flex-shrink:0;border-right:1px solid var(--ink);border-bottom:1px solid var(--line);
     display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12px;
     background:var(--line-soft);
   }
-  .rhead .weeks{display:flex;height:calc(var(--header-h) - 32px);background:var(--paper);}
+.rhead .weeks{display:flex;height:calc(var(--header-h) - 32px);background:var(--paper);}
   .rhead .wk{
     width:var(--col-w);flex-shrink:0;border-right:1px dotted var(--line);position:relative;
     display:flex;align-items:flex-start;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--ink-soft);padding-top:3px;
@@ -219,19 +252,34 @@
   .lrow .r-check{width:16px;flex-shrink:0;}
   .lrow .r-label{flex:1;min-width:120px;font-size:11.5px;color:var(--ink);cursor:default;}
   .lrow .r-req{
-    width:190px;flex-shrink:0;font-size:10.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;
+    width:170px;flex-shrink:0;font-size:10.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;
     text-overflow:ellipsis;
   }
+  .lrow .r-due{width:96px;flex-shrink:0;}
   .lrow .r-pic{
     width:64px;flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
+  .lrow .r-budget{
+    width:88px;flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);
+    text-align:right;padding-right:4px;display:none;
+  }
+  body.show-budget .lrow .r-budget{display:block;}
   input.pic-input{
     width:64px;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 5px;border:1px solid transparent;
     border-radius:4px;background:transparent;color:var(--ink);
   }
-  body.edit-mode input.pic-input{border-color:var(--line);background:#fff;}
-  input.pic-input:focus{outline:none;border-color:var(--solid);background:#fff;}
+  input.due-input{
+    width:94px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;padding:3px 4px;border:1px solid transparent;
+    border-radius:4px;background:transparent;color:var(--ink-soft);
+  }
+  input.due-input.overdue{color:var(--rust);font-weight:600;}
+  input.budget-input{
+    width:86px;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 5px;border:1px solid transparent;
+    border-radius:4px;background:transparent;color:var(--ink);text-align:right;
+  }
+  body.edit-mode input.pic-input, body.edit-mode input.due-input, body.edit-mode input.budget-input{border-color:var(--line);background:#fff;}
+  input.pic-input:focus, input.due-input:focus, input.budget-input:focus{outline:none;border-color:var(--solid);background:#fff;}
 
   .rrow{display:flex;height:var(--row-h);border-bottom:1px solid var(--line-soft);position:relative;}
   .rrow .cell{width:var(--col-w);flex-shrink:0;border-right:1px dotted var(--line-soft);}
@@ -245,10 +293,28 @@
   .bar.dashed.cat-scaleup{background:var(--cat-scaleup-fill);color:#1B3E6B;border:2px dashed var(--cat-scaleup);}
   .bar.solid.cat-other{background:var(--cat-other);color:#F3F7F4;border:1px solid var(--cat-other);}
   .bar.dashed.cat-other{background:var(--cat-other-fill);color:#1C2620;border:2px dashed var(--cat-other);}
+  .bar.completed.cat-ns{background:var(--cat-ns);color:#F3F7F4;border:1px solid var(--cat-ns);}
+  .bar.completed.cat-scaleup{background:var(--cat-scaleup);color:#F3F7F4;border:1px solid var(--cat-scaleup);}
+  .bar.completed.cat-other{background:var(--cat-other);color:#F3F7F4;border:1px solid var(--cat-other);}
+  .bar.completed{opacity:.55;filter:saturate(.6);}
+  .bar.completed::after{content:"✓";position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;}
   .bar:hover{filter:brightness(1.1);z-index:5;box-shadow:0 2px 6px rgba(28,38,32,.18);}
+  body.edit-mode .bar{cursor:grab;}
+  body.edit-mode .bar.dragging{cursor:grabbing;z-index:20;box-shadow:0 4px 12px rgba(28,38,32,.3);}
+  .bar-resize{
+    position:absolute;right:0;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:2;
+  }
+  body.edit-mode .bar-resize:hover{background:rgba(0,0,0,.18);border-radius:0 5px 5px 0;}
 
   .today-line{position:absolute;top:0;width:2px;background:var(--rust);z-index:6;pointer-events:none;}
   .today-tag{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--rust);white-space:nowrap;}
+
+  .complete-marker{position:absolute;top:4px;bottom:4px;width:2px;background:var(--ink);z-index:7;pointer-events:none;}
+  .complete-marker .cm-tag{
+    position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:2px;
+    font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--ink);background:var(--paper);
+    padding:1px 3px;border-radius:3px;white-space:nowrap;border:1px solid var(--line);
+  }
 
   .footnote{margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);line-height:1.5;flex-shrink:0;max-height:60px;overflow-y:auto;}
   .footnote b{color:var(--ink);}
@@ -324,7 +390,19 @@
         <span class="legend-title">Status</span>
         <div class="legend-item"><span class="swatch solid"></span> In progress</div>
         <div class="legend-item"><span class="swatch dashed"></span> Planned</div>
+        <div class="legend-item"><span class="swatch solid" style="opacity:.55"></span> ✓ Completed</div>
         <div class="legend-item"><span class="swatch today"></span> Today</div>
+      </div>
+      <div class="progress-badge-wrap">
+        <div class="progress-badge" id="progressBadge" title="Click for breakdown">
+          <svg class="pb-ring" viewBox="0 0 36 36" id="pbRing">
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#E6EBDF" stroke-width="4"></circle>
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#2E6F5C" stroke-width="4" stroke-linecap="round"
+              id="pbRingFg" stroke-dasharray="97.4" stroke-dashoffset="97.4" transform="rotate(-90 18 18)"></circle>
+          </svg>
+          <span class="pb-text"><span class="pb-pct" id="pbPct">0%</span><span class="pb-label">Overall progress</span></span>
+        </div>
+        <div class="progress-pop" id="progressPop"></div>
       </div>
     </div>
   </div>
@@ -343,6 +421,22 @@
     </span>
     <button class="btn edit-only" onclick="openGroupModal(null)">+ Add task group</button>
     <button class="btn danger" id="deleteSelectedBtn" onclick="deleteSelected()">🗑 Delete selected</button>
+
+    <select class="filter-select" id="filterProject" title="Filter by project">
+      <option value="all">All projects</option>
+      <option value="ns">N–S fertilizer</option>
+      <option value="scaleup">Scale-up</option>
+      <option value="other">Shared / other</option>
+    </select>
+    <select class="filter-select" id="filterStatus" title="Filter by status">
+      <option value="all">All statuses</option>
+      <option value="solid">In progress</option>
+      <option value="dashed">Planned</option>
+      <option value="completed">Completed</option>
+    </select>
+
+    <button class="btn ghost toggle edit-only" id="budgetToggle" title="Show/hide Budget column">💰 Budget</button>
+
     <div class="spacer"></div>
     <span class="savepill" id="savePill">✓ Saved</span>
   </div>
@@ -354,7 +448,9 @@
           <span class="c-check edit-only"></span>
           <span class="c-label">Task / Sub-step</span>
           <span class="c-req">Requirement</span>
+          <span class="c-due">Due date</span>
           <span class="c-pic">PIC</span>
+          <span class="c-budget">Budget</span>
           <span class="c-move edit-only">Order</span>
           <span class="c-edit"></span>
         </div>
@@ -374,7 +470,10 @@
   <p class="footnote">
     <b>Note:</b> Phase 1A (material characterization) actually started in the 4th week of Jun-2026, before this chart's start date; its bar is clipped to begin at the 1st week of Jul-2026. &nbsp;•&nbsp;
     The board is locked by default. Turn on <b>Edit mode</b> above and enter the password to reveal checkboxes, pencil icons, and delete controls — every change still asks for confirmation. &nbsp;•&nbsp;
-    In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor. Use the <b>▲ / ▼</b> buttons to reorder task groups and sub-steps.
+    In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor. Use the <b>▲ / ▼</b> buttons to reorder task groups and sub-steps. &nbsp;•&nbsp;
+    In Edit mode, drag a bar to move it or drag its right edge to resize — this works together with the <b>project / status filters</b> in the toolbar. &nbsp;•&nbsp;
+    Set status to <b>✓ Completed</b> and enter a completion date to draw a dated marker on that sub-step's bar. &nbsp;•&nbsp;
+    Use the <b>💰 Budget</b> button to show/hide the budget column, and the progress ring in the header for an overall completion memo.
   </p>
 
 </div>
@@ -391,27 +490,110 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
 import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-database.js";
 
-const MONTHS = ["Jul-26","Aug-26","Sep-26","Oct-26","Nov-26","Dec-26","Jan-27","Feb-27"];
-const TOTAL_COLS = MONTHS.length * 4;
+/* =====================================================================
+   TIMELINE MONTH RANGE — now fully dynamic.
+   Sub-steps are set with a "From month" / "To month" (e.g. Apr-2026 →
+   Apr-2027), stored as r.startMonth / r.endMonth in "YYYY-MM" form.
+   The visible MONTHS array (and therefore the whole header + column
+   grid) is recomputed on every render from whatever range the data
+   actually needs, always covering at least the original default
+   window (Jul-2026 → Feb-2027) so the chart never looks empty.
+===================================================================== */
+const BASE_START = "2026-07";
+const BASE_END = "2027-02";
+const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function addMonths(key, n){
+  let [y,m] = key.split('-').map(Number);
+  m += n;
+  y += Math.floor((m-1)/12);
+  m = ((m-1)%12+12)%12 + 1;
+  return y+'-'+String(m).padStart(2,'0');
+}
+function monthLabel(key){ const [y,m] = key.split('-'); return MONTH_ABBR[parseInt(m,10)-1]+'-'+y.slice(2); }
+function buildMonthRange(startKey, endKey){
+  const arr = []; let k = startKey; let guard = 0;
+  while(k <= endKey && guard < 400){ arr.push(k); k = addMonths(k,1); guard++; }
+  return arr;
+}
+const LEGACY_BASE_MONTHS = buildMonthRange(BASE_START, BASE_END); // used only to migrate old week-index rows
+
+// Broad selectable range for the From/To month pickers in the modal —
+// independent of what's currently visible, so choosing a month outside
+// today's window (e.g. 2027, 2028...) is always possible and simply
+// grows the timeline once saved.
+const MONTH_OPTIONS = buildMonthRange(addMonths(BASE_START,-18), addMonths(BASE_START,72))
+  .map(key=>({ value:key, label:monthLabel(key) }));
+
+let MONTHS = buildMonthRange(BASE_START, BASE_END); // current visible range, recomputed each render
+let TOTAL_COLS = MONTHS.length * 4;
 const colW = 30;
 const STORAGE_KEY = 'labScheduleDataV4';
 const UPDATED_KEY = 'labScheduleUpdatedV4';
 const EDIT_PASSWORD = '5656';
 
-const WEEK_OPTIONS = [];
-MONTHS.forEach((m,mi)=>{
-  const mName = m.split('-')[0];
-  for(let w=1;w<=4;w++){ WEEK_OPTIONS.push({value: mi*4+w, label: mName+' W'+w}); }
-});
-function weekLabel(v){ const o = WEEK_OPTIONS.find(o=>o.value===v); return o?o.label:v; }
-
 function uid(){ return 'id'+Math.random().toString(36).slice(2,10); }
+
+// Convert a legacy row (old week-index start/span against the original
+// fixed 8-month window) into the new startMonth/endMonth fields, if it
+// doesn't have them yet. Safe to call repeatedly — a no-op once migrated.
+function migrateRowMonths(r){
+  if(r.startMonth && r.endMonth) return;
+  if(r.start!=null && r.span!=null){
+    const clamp = i => Math.max(0, Math.min(LEGACY_BASE_MONTHS.length-1, i));
+    const startIdx = clamp(Math.floor((r.start-1)/4));
+    const endIdx = clamp(Math.floor((r.start-1+r.span-1)/4));
+    r.startMonth = LEGACY_BASE_MONTHS[startIdx];
+    r.endMonth = LEGACY_BASE_MONTHS[endIdx];
+  } else {
+    r.startMonth = BASE_START;
+    r.endMonth = BASE_START;
+  }
+}
+
+// Scan all rows (migrating legacy ones along the way), and recompute the
+// MONTHS window so it always spans at least the default range plus
+// whatever the data itself needs.
+function recomputeMonthsRange(){
+  let minKey = BASE_START, maxKey = BASE_END;
+  data.forEach(g=>g.rows.forEach(r=>{
+    migrateRowMonths(r);
+    if(r.startMonth < minKey) minKey = r.startMonth;
+    if(r.endMonth > maxKey) maxKey = r.endMonth;
+  }));
+  MONTHS = buildMonthRange(minKey, maxKey);
+  TOTAL_COLS = MONTHS.length * 4;
+}
+
+// Map a row's startMonth/endMonth to week-column coordinates against the
+// CURRENT MONTHS array (whole-month blocks, 4 columns per month).
+function monthSpanToCols(startMonth, endMonth){
+  let si = MONTHS.indexOf(startMonth);
+  let ei = MONTHS.indexOf(endMonth);
+  if(si===-1) si = 0;
+  if(ei===-1) ei = MONTHS.length-1;
+  if(ei<si) ei = si;
+  return { start: si*4+1, span:(ei-si+1)*4 };
+}
+
+function dateToPos(dateStr){
+  if(!dateStr) return null;
+  const parts = dateStr.split('-');
+  if(parts.length!==3) return null;
+  const y = parseInt(parts[0],10), m = parseInt(parts[1],10), day = parseInt(parts[2],10);
+  if(!y || !m || !day) return null;
+  const monthKey = String(y)+'-'+String(m).padStart(2,'0');
+  const mi = MONTHS.indexOf(monthKey);
+  if(mi===-1) return null;
+  const week = Math.min(4, Math.ceil(day/7));
+  const fracInWeek = ((day-1)%7)/7;
+  const col = mi*4 + week;
+  return (col-1)*colW + fracInWeek*colW;
+}
+
 
 const CATEGORY_LABELS = { ns:'N–S fertilizer project', scaleup:'Scale-up project', other:'Shared / other project' };
 
-// Intentionally blank — this file is just the template/format. All real
-// schedule data lives in Firebase; nothing here is used once Firebase is
-// connected (only as a fallback if Firebase isn't configured).
 const DEFAULT_DATA = [];
 
 /* =====================================================================
@@ -428,7 +610,15 @@ const DEFAULT_DATA = [];
       > start in LOCKED mode.
    2. Go to the "Rules" tab and publish:
       { "rules": { "labScheduleDashboard": { ".read": true, ".write": true } } }
-   3. That's it — everyone who opens this HTML file reads/writes the
+   3. Want to start from a clean board instead of whatever's on the
+      server right now? Go to Realtime Database > Data tab > ⋮ menu >
+      Import JSON, and use one of the blank template files that ship
+      alongside this HTML (firebase_blank_import_ROOT.json if you're
+      importing at the database root, firebase_blank_import_NODE.json
+      if you've already navigated into the labScheduleDashboard/v4
+      node). See firebase_data_schema_reference.md for the full field
+      list if you want to type/paste your own data instead.
+   4. That's it — everyone who opens this HTML file reads/writes the
       same database node in real time.
 
    Note: a Firebase web apiKey (below) is not a secret — it just
@@ -444,7 +634,7 @@ const FIREBASE_CONFIG = {
   appId: "1:775489791813:web:7cee10c9c9f61521fa802c",
   // TODO: paste the databaseURL from Realtime Database > Data tab, e.g.:
   // "https://cbt-th-5103d-default-rtdb.asia-southeast1.firebasedatabase.app"
-  databaseURL: "https://project-schedule-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app"
+  databaseURL: "https://project-schedule-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 const DB_PATH = 'labScheduleDashboard/v4'; // change this if you want a fresh/separate dataset
 
@@ -453,6 +643,10 @@ let selectedGroups = new Set();
 let selectedRows = new Set();
 let firebaseEnabled = false;
 let dbRef = null;
+let filterProject = 'all';
+let filterStatus = 'all';
+let showBudget = false;
+let todayISO = new Date().toISOString().slice(0,10);
 
 function setSyncTag(state, text){
   const el = document.getElementById('syncTag');
@@ -467,7 +661,7 @@ function loadLocalFallback(){
 
 function initFirebase(){
   const looksConfigured = FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('YOUR_')
-                        && FIREBASE_CONFIG.databaseURL && !FIREBASE_CONFIG.databaseURL.includes('YOUR_');
+                        && FIREBASE_CONFIG.databaseURL && FIREBASE_CONFIG.databaseURL.startsWith('https://');
   if(!looksConfigured){
     data = loadLocalFallback();
     setSyncTag('warn', '● Local only — Firebase not configured (see comments in the HTML)');
@@ -550,6 +744,61 @@ editToggle.addEventListener('change', e=>{
   hideNoteTip();
   render();
 });
+
+/* ---------- Filters ---------- */
+document.getElementById('filterProject').addEventListener('change', e=>{
+  filterProject = e.target.value; render();
+});
+document.getElementById('filterStatus').addEventListener('change', e=>{
+  filterStatus = e.target.value; render();
+});
+function rowMatchesFilter(r, cat){
+  if(filterProject!=='all' && cat!==filterProject) return false;
+  if(filterStatus!=='all' && (r.style||'solid')!==filterStatus) return false;
+  return true;
+}
+
+/* ---------- Budget column toggle ---------- */
+document.getElementById('budgetToggle').addEventListener('click', ()=>{
+  showBudget = !showBudget;
+  document.body.classList.toggle('show-budget', showBudget);
+  document.getElementById('budgetToggle').classList.toggle('active', showBudget);
+  document.documentElement.style.setProperty('--left-w', showBudget ? '748px' : '660px');
+  setTimeout(()=>{ updateVScrollThumb(); }, 0);
+});
+
+/* ---------- Progress summary popover ---------- */
+const progressBadge = document.getElementById('progressBadge');
+const progressPop = document.getElementById('progressPop');
+progressBadge.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  progressPop.classList.toggle('show');
+});
+document.addEventListener('click', (e)=>{
+  if(!progressPop.contains(e.target) && e.target!==progressBadge) progressPop.classList.remove('show');
+});
+function updateProgressSummary(){
+  let total=0, done=0;
+  const byCat = { ns:{total:0,done:0}, scaleup:{total:0,done:0}, other:{total:0,done:0} };
+  data.forEach(g=>g.rows.forEach(r=>{
+    const cat = r.category || 'other';
+    total++; byCat[cat].total++;
+    if(r.style==='completed'){ done++; byCat[cat].done++; }
+  }));
+  const pct = total>0 ? Math.round((done/total)*100) : 0;
+  document.getElementById('pbPct').textContent = pct + '%';
+  const circumference = 2*Math.PI*15.5;
+  const ring = document.getElementById('pbRingFg');
+  ring.setAttribute('stroke-dasharray', circumference.toFixed(1));
+  ring.setAttribute('stroke-dashoffset', (circumference*(1-pct/100)).toFixed(1));
+  progressPop.innerHTML = `
+    <h3>Overall progress memo</h3>
+    <div class="pp-row"><span>All sub-steps</span><b>${done} / ${total} (${pct}%)</b></div>
+    <div class="pp-row"><span>N–S fertilizer</span><b>${byCat.ns.done} / ${byCat.ns.total}</b></div>
+    <div class="pp-row"><span>Scale-up</span><b>${byCat.scaleup.done} / ${byCat.scaleup.total}</b></div>
+    <div class="pp-row"><span>Shared / other</span><b>${byCat.other.done} / ${byCat.other.total}</b></div>
+  `;
+}
 
 /* ---------- Note tooltip ---------- */
 const noteTip = document.getElementById('noteTip');
@@ -650,7 +899,7 @@ function openGroupModal(gid){
     const title = document.getElementById('m-title').value.trim();
     if(!title){ alert('Please enter a group title.'); return; }
     if(isNew){
-      data.push({id:uid(), title, rows:[{id:uid(), label:"New sub-step", start:1, span:1, style:"solid", category:"other", requirement:"", pic:"", note:""}]});
+      data.push({id:uid(), title, rows:[{id:uid(), label:"New sub-step", startMonth:BASE_START, endMonth:BASE_START, style:"solid", category:"other", requirement:"", pic:"", note:"", dueDate:"", budget:null, completedDate:""}]});
     } else {
       g.title = title;
     }
@@ -662,10 +911,11 @@ function openRowModal(gid, rid){
   const isNew = rid===null;
   const g = data.find(g=>g.id===gid);
   const r = isNew ? null : g.rows.find(r=>r.id===rid);
-  const fromVal = isNew ? 1 : r.start;
-  const toVal = isNew ? 1 : (r.start + r.span - 1);
+  const fromVal = isNew ? BASE_START : r.startMonth;
+  const toVal = isNew ? BASE_START : r.endMonth;
   const styleVal = isNew ? 'solid' : r.style;
   const catVal = isNew ? 'other' : (r.category || 'other');
+  const completedDateVal = isNew ? '' : (r.completedDate || '');
   modalBox.innerHTML = `
     <h2>${isNew ? 'Add sub-step' : 'Edit sub-step'}</h2>
     <div class="field">
@@ -674,38 +924,54 @@ function openRowModal(gid, rid){
     </div>
     <div class="field-row">
       <div class="field">
-        <label>From</label>
-        <select id="m-from">${WEEK_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===fromVal?'selected':''}>${o.label}</option>`).join('')}</select>
+        <label>From (month)</label>
+        <select id="m-from">${MONTH_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===fromVal?'selected':''}>${o.label}</option>`).join('')}</select>
       </div>
       <div class="field">
-        <label>To</label>
-        <select id="m-to">${WEEK_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===toVal?'selected':''}>${o.label}</option>`).join('')}</select>
+        <label>To (month)</label>
+        <select id="m-to">${MONTH_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===toVal?'selected':''}>${o.label}</option>`).join('')}</select>
       </div>
     </div>
+    <p style="margin:-6px 0 13px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);">Bars run the full width of each selected month. Choosing a month outside the current chart (e.g. into 2027 or beyond) automatically extends the timeline.</p>
     <div class="field-row">
       <div class="field">
         <label>Status</label>
         <select id="m-style">
           <option value="solid" ${styleVal==='solid'?'selected':''}>Solid — in progress</option>
           <option value="dashed" ${styleVal==='dashed'?'selected':''}>Dashed — planned</option>
+          <option value="completed" ${styleVal==='completed'?'selected':''}>✓ Completed</option>
         </select>
       </div>
       <div class="field">
         <label>Progress colour / project</label>
         <select id="m-cat">
           <option value="ns" ${catVal==='ns'?'selected':''}>Green — N–S fertilizer project</option>
-          <option value="scaleup" ${catVal==='scaleup'?'selected':''}>Dark blue — Scale-up project</option>
-          <option value="other" ${catVal==='other'?'selected':''}>Black — Shared / other project</option>
+          <option value="scaleup" ${catVal==='scaleup'?'selected':''}>Blueberry — Scale-up project</option>
+          <option value="other" ${catVal==='other'?'selected':''}>Orange — Shared / other project</option>
         </select>
       </div>
+    </div>
+    <div class="field" id="m-completed-field" style="${styleVal==='completed'?'':'display:none;'}">
+      <label>Completed date</label>
+      <input type="date" id="m-completed-date" value="${completedDateVal}">
     </div>
     <div class="field">
       <label>Requirement (detail / description of this sub-step)</label>
       <textarea id="m-requirement" rows="2" placeholder="e.g. Need 2 supplier quotations before confirming order">${isNew ? '' : (r.requirement||'')}</textarea>
     </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Due date</label>
+        <input type="date" id="m-due" value="${isNew ? '' : (r.dueDate||'')}">
+      </div>
+      <div class="field">
+        <label>PIC (person in charge)</label>
+        <input type="text" id="m-pic" value="${isNew ? '' : (r.pic||'').replace(/"/g,'&quot;')}" placeholder="e.g. Bee">
+      </div>
+    </div>
     <div class="field">
-      <label>PIC (person in charge — nickname)</label>
-      <input type="text" id="m-pic" value="${isNew ? '' : (r.pic||'').replace(/"/g,'&quot;')}" placeholder="e.g. Bee">
+      <label>Budget (THB)</label>
+      <input type="text" id="m-budget" inputmode="decimal" value="${isNew ? '' : (r.budget!=null?r.budget:'')}" placeholder="e.g. 25000">
     </div>
     <div class="field">
       <label>Note</label>
@@ -719,6 +985,9 @@ function openRowModal(gid, rid){
     </div>
   `;
   overlay.classList.add('show');
+  document.getElementById('m-style').addEventListener('change', (e)=>{
+    document.getElementById('m-completed-field').style.display = e.target.value==='completed' ? '' : 'none';
+  });
   document.getElementById('m-cancel').onclick = closeModal;
   if(!isNew) document.getElementById('m-delete').onclick = ()=>{
     if(!confirm('Delete this sub-step?')) return;
@@ -728,19 +997,26 @@ function openRowModal(gid, rid){
   document.getElementById('m-save').onclick = ()=>{
     const label = document.getElementById('m-label').value.trim();
     if(!label){ alert('Please enter a label.'); return; }
-    let from = parseInt(document.getElementById('m-from').value);
-    let to = parseInt(document.getElementById('m-to').value);
-    if(to < from) to = from;
+    let fromMonth = document.getElementById('m-from').value;
+    let toMonth = document.getElementById('m-to').value;
+    if(toMonth < fromMonth) toMonth = fromMonth;
     const style = document.getElementById('m-style').value;
     const category = document.getElementById('m-cat').value;
     const requirement = document.getElementById('m-requirement').value.trim();
     const pic = document.getElementById('m-pic').value.trim();
     const note = document.getElementById('m-note').value.trim();
+    const dueDate = document.getElementById('m-due').value;
+    const budgetRaw = document.getElementById('m-budget').value.trim();
+    const budget = budgetRaw ? parseFloat(budgetRaw.replace(/,/g,'')) : null;
+    let completedDate = document.getElementById('m-completed-date').value;
+    if(style==='completed' && !completedDate){ alert('Please enter the completed date.'); return; }
+    if(style!=='completed') completedDate = '';
     if(isNew){
-      g.rows.push({id:uid(), label, start:from, span:(to-from+1), style, category, requirement, pic, note});
+      g.rows.push({id:uid(), label, startMonth:fromMonth, endMonth:toMonth, style, category, requirement, pic, note, dueDate, budget, completedDate});
     } else {
-      r.label = label; r.start = from; r.span = (to-from+1); r.style = style;
+      r.label = label; r.startMonth = fromMonth; r.endMonth = toMonth; r.style = style;
       r.category = category; r.requirement = requirement; r.pic = pic; r.note = note;
+      r.dueDate = dueDate; r.budget = budget; r.completedDate = completedDate;
     }
     saveData(); render(); closeModal();
   };
@@ -753,7 +1029,7 @@ function buildHeader(){
   monthsEl.innerHTML=''; weeksEl.innerHTML='';
   MONTHS.forEach(m=>{
     const d = document.createElement('div');
-    d.className='month'; d.style.width=(colW*4)+'px'; d.textContent=m;
+    d.className='month'; d.style.width=(colW*4)+'px'; d.textContent=monthLabel(m);
     monthsEl.appendChild(d);
   });
   for(let i=1;i<=TOTAL_COLS;i++){
@@ -765,12 +1041,19 @@ function buildHeader(){
 
 function render(){
   selectedGroups.clear(); selectedRows.clear();
+  recomputeMonthsRange();
+  buildHeader();
   const panelLeft = document.getElementById('panelLeft');
   const panelRight = document.getElementById('panelRight');
   [...panelLeft.querySelectorAll(':scope > *:not(.lhead)')].forEach(e=>e.remove());
   [...panelRight.querySelectorAll(':scope > *:not(.rhead)')].forEach(e=>e.remove());
 
+  const filtering = (filterProject!=='all' || filterStatus!=='all');
+
   data.forEach((g, gIdx)=>{
+    const visibleRows = filtering ? g.rows.filter(r=>rowMatchesFilter(r, r.category||'other')) : g.rows;
+    if(filtering && visibleRows.length===0) return; // whole group hidden by filter
+
     const lgh = document.createElement('div');
     lgh.className='group-head';
     lgh.innerHTML = `
@@ -790,7 +1073,6 @@ function render(){
     });
     lgh.querySelector('.move-up').addEventListener('click', ()=>moveGroup(g.id, -1));
     lgh.querySelector('.move-down').addEventListener('click', ()=>moveGroup(g.id, 1));
-    const [addBtn, editBtn] = lgh.querySelectorAll('.icon-btn.add, .group-head > .icon-btn:not(.add):not(.move-up):not(.move-down)');
     lgh.querySelector('.icon-btn.add').addEventListener('click', ()=>openRowModal(g.id, null));
     lgh.querySelectorAll('.icon-btn').forEach(b=>{
       if(b.textContent.trim()==='✎') b.addEventListener('click', ()=>openGroupModal(g.id));
@@ -802,7 +1084,8 @@ function render(){
     rgh.style.width=(TOTAL_COLS*colW)+'px';
     panelRight.appendChild(rgh);
 
-    g.rows.forEach((r, rIdx)=>{
+    visibleRows.forEach((r)=>{
+      const rIdx = g.rows.indexOf(r); // index within the FULL (unfiltered) list, for move up/down + disabling
       const cat = r.category || 'other';
       const lrow = document.createElement('div');
       lrow.className='lrow';
@@ -810,7 +1093,9 @@ function render(){
         <span class="r-check edit-only"><input type="checkbox" title="Select this sub-step for deletion"></span>
         <span class="r-label">${r.label}</span>
         <span class="r-req" title="${(r.requirement||'').replace(/"/g,'&quot;')}">${r.requirement ? r.requirement : '—'}</span>
+        <span class="r-due"></span>
         <span class="r-pic"></span>
+        <span class="r-budget"></span>
         <span class="move-group edit-only">
           <button class="icon-btn move-up" title="Move step up" ${rIdx===0?'disabled':''}>▲</button>
           <button class="icon-btn move-down" title="Move step down" ${rIdx===g.rows.length-1?'disabled':''}>▼</button>
@@ -824,6 +1109,23 @@ function render(){
       });
       lrow.querySelector('.move-up').addEventListener('click', ()=>moveRow(g.id, r.id, -1));
       lrow.querySelector('.move-down').addEventListener('click', ()=>moveRow(g.id, r.id, 1));
+
+      // Due date (inline, editable in Edit mode — placed before PIC)
+      const dueSpan = lrow.querySelector('.r-due');
+      const dueInput = document.createElement('input');
+      dueInput.type='date'; dueInput.className='due-input'; dueInput.value = r.dueDate || '';
+      dueInput.title = 'Due date';
+      dueInput.readOnly = true;
+      if(r.dueDate && r.style!=='completed' && r.dueDate < todayISO) dueInput.classList.add('overdue');
+      dueInput.addEventListener('focus', ()=>{ if(!document.body.classList.contains('edit-mode')) dueInput.blur(); });
+      dueSpan.appendChild(dueInput);
+      function syncDueEditable(){ dueInput.readOnly = !document.body.classList.contains('edit-mode'); dueInput.disabled = dueInput.readOnly; }
+      syncDueEditable();
+      dueInput.addEventListener('change', ()=>{
+        r.dueDate = dueInput.value; saveData();
+      });
+
+      // PIC
       const picSpan = lrow.querySelector('.r-pic');
       const picInput = document.createElement('input');
       picInput.type='text'; picInput.className='pic-input'; picInput.value = r.pic || '';
@@ -838,6 +1140,26 @@ function render(){
         r.pic = picInput.value.trim();
         saveData();
       });
+
+      // Budget (hidden unless the Budget toggle is on)
+      const budgetSpan = lrow.querySelector('.r-budget');
+      const budgetInput = document.createElement('input');
+      budgetInput.type='text'; budgetInput.className='budget-input'; budgetInput.inputMode='decimal';
+      budgetInput.value = (r.budget!=null && r.budget!=='') ? Number(r.budget).toLocaleString('en-US') : '';
+      budgetInput.placeholder='—';
+      budgetInput.title = 'Budget (THB)';
+      budgetInput.readOnly = true;
+      budgetInput.addEventListener('focus', ()=>{ if(!document.body.classList.contains('edit-mode')) budgetInput.blur(); });
+      budgetSpan.appendChild(budgetInput);
+      function syncBudgetEditable(){ budgetInput.readOnly = !document.body.classList.contains('edit-mode'); }
+      syncBudgetEditable();
+      budgetInput.addEventListener('change', ()=>{
+        const raw = budgetInput.value.replace(/,/g,'').trim();
+        r.budget = raw ? parseFloat(raw) : null;
+        budgetInput.value = (r.budget!=null) ? Number(r.budget).toLocaleString('en-US') : '';
+        saveData();
+      });
+
       lrow.querySelector('button[title="Edit sub-step"]').addEventListener('click', ()=>openRowModal(g.id, r.id));
       attachNoteHover(lrow.querySelector('.r-label'), r.note);
       panelLeft.appendChild(lrow);
@@ -852,12 +1174,34 @@ function render(){
       }
       const bar=document.createElement('div');
       bar.className='bar '+r.style+' cat-'+cat;
-      bar.style.left=((r.start-1)*colW+2)+'px';
-      bar.style.width=(r.span*colW-4)+'px';
-      bar.title=r.label+' — '+(r.style==='solid'?'in progress':'planned')+' · '+CATEGORY_LABELS[cat];
+      const cols = monthSpanToCols(r.startMonth, r.endMonth);
+      bar.style.left=((cols.start-1)*colW+2)+'px';
+      bar.style.width=(cols.span*colW-4)+'px';
+      const statusLabel = r.style==='completed' ? 'completed' : (r.style==='solid'?'in progress':'planned');
+      bar.title=r.label+' — '+statusLabel+' · '+CATEGORY_LABELS[cat]+' · '+monthLabel(r.startMonth)+(r.endMonth!==r.startMonth?(' → '+monthLabel(r.endMonth)):'')+(document.body.classList.contains('edit-mode')?' · drag to move, drag right edge to resize':'');
       bar.textContent = r.style==='dashed' ? '···' : '';
       attachNoteHover(bar, r.note);
+      const resizeHandle = document.createElement('div');
+      resizeHandle.className='bar-resize';
+      bar.appendChild(resizeHandle);
+      attachBarDrag(bar, resizeHandle, g.id, r.id);
       rrow.appendChild(bar);
+
+      // Completed marker: vertical tick at the completion date, with the date labeled
+      if(r.style==='completed' && r.completedDate){
+        const pos = dateToPos(r.completedDate);
+        if(pos!=null){
+          const marker = document.createElement('div');
+          marker.className='complete-marker';
+          marker.style.left = pos+'px';
+          const tag = document.createElement('div');
+          tag.className='cm-tag';
+          tag.textContent = '✓ ' + r.completedDate;
+          marker.appendChild(tag);
+          rrow.appendChild(marker);
+        }
+      }
+
       panelRight.appendChild(rrow);
     });
   });
@@ -865,15 +1209,88 @@ function render(){
   updateSelectionUI();
   drawTodayLine();
   updateVScrollThumb();
+  updateProgressSummary();
+}
+
+/* ---------- Drag-to-move / drag-to-resize bars (Edit mode only) ---------- */
+function attachBarDrag(bar, resizeHandle, gid, rid){
+  let mode = null; // 'move' | 'resize'
+  let startX = 0, startLeftPx = 0, startWidthPx = 0, moved = false;
+
+  function getRow(){
+    const g = data.find(g=>g.id===gid);
+    return g ? g.rows.find(r=>r.id===rid) : null;
+  }
+
+  bar.addEventListener('mousedown', (e)=>{
+    if(!document.body.classList.contains('edit-mode')) return;
+    if(e.target===resizeHandle) return; // handled separately below
+    mode = 'move'; moved = false;
+    startX = e.clientX;
+    startLeftPx = parseFloat(bar.style.left);
+    bar.classList.add('dragging');
+    e.preventDefault();
+  });
+  resizeHandle.addEventListener('mousedown', (e)=>{
+    if(!document.body.classList.contains('edit-mode')) return;
+    mode = 'resize'; moved = false;
+    startX = e.clientX;
+    startWidthPx = parseFloat(bar.style.width);
+    bar.classList.add('dragging');
+    e.stopPropagation();
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e)=>{
+    if(!mode) return;
+    const dx = e.clientX - startX;
+    if(Math.abs(dx) > 3) moved = true;
+    const monthW = colW*4;
+    if(mode==='move'){
+      let newLeft = startLeftPx + dx;
+      newLeft = Math.max(2, Math.min(newLeft, TOTAL_COLS*colW - parseFloat(bar.style.width) - 2));
+      newLeft = Math.round((newLeft-2)/monthW)*monthW + 2; // live-snap to month boundaries
+      bar.style.left = newLeft+'px';
+    } else if(mode==='resize'){
+      let newWidth = Math.max(monthW-4, startWidthPx + dx);
+      newWidth = Math.round((newWidth+4)/monthW)*monthW - 4; // live-snap to whole months
+      bar.style.width = newWidth+'px';
+    }
+  });
+  document.addEventListener('mouseup', ()=>{
+    if(!mode) return;
+    bar.classList.remove('dragging');
+    if(moved){
+      const r = getRow();
+      if(r){
+        const monthW = colW*4; // dragging/resizing now snaps to whole months
+        if(mode==='move'){
+          const left = parseFloat(bar.style.left);
+          const spanMonths = Math.max(1, Math.round(parseFloat(bar.style.width)/monthW));
+          let newStartIdx = Math.round((left-2)/monthW);
+          newStartIdx = Math.max(0, Math.min(newStartIdx, MONTHS.length - spanMonths));
+          const newEndIdx = newStartIdx + spanMonths - 1;
+          r.startMonth = MONTHS[newStartIdx];
+          r.endMonth = MONTHS[newEndIdx];
+        } else if(mode==='resize'){
+          const si = Math.max(0, MONTHS.indexOf(r.startMonth));
+          let spanMonths = Math.max(1, Math.round((parseFloat(bar.style.width)+4)/monthW));
+          const newEndIdx = Math.min(MONTHS.length-1, si+spanMonths-1);
+          r.endMonth = MONTHS[newEndIdx];
+        }
+        saveData();
+      }
+      render();
+    }
+    mode = null;
+  });
 }
 
 function drawTodayLine(){
   const panelRight = document.getElementById('panelRight');
   const old = panelRight.querySelector('.today-line');
   if(old) old.remove();
-  const todayCol = 2;
-  const todayFrac = (11-8)/7;
-  const todayLeft = (todayCol-1)*colW + todayFrac*colW;
+  const todayLeft = dateToPos(todayISO);
+  if(todayLeft==null) return; // today falls outside the currently visible month range
   const totalHeight = panelRight.scrollHeight;
   const line = document.createElement('div');
   line.className='today-line';
@@ -881,7 +1298,8 @@ function drawTodayLine(){
   line.style.height = totalHeight+'px';
   const tag = document.createElement('div');
   tag.className='today-tag';
-  tag.textContent='Today · 11 Jul';
+  const d = new Date(todayISO+'T00:00:00');
+  tag.textContent = 'Today · ' + d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
   line.appendChild(tag);
   panelRight.appendChild(line);
 }
