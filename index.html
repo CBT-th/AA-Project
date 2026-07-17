@@ -471,7 +471,7 @@
     <b>Note:</b> Phase 1A (material characterization) actually started in the 4th week of Jun-2026, before this chart's start date; its bar is clipped to begin at the 1st week of Jul-2026. &nbsp;•&nbsp;
     The board is locked by default. Turn on <b>Edit mode</b> above and enter the password to reveal checkboxes, pencil icons, and delete controls — every change still asks for confirmation. &nbsp;•&nbsp;
     In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor. Use the <b>▲ / ▼</b> buttons to reorder task groups and sub-steps. &nbsp;•&nbsp;
-    In Edit mode, drag a bar to move it or drag its right edge to resize — this works together with the <b>project / status filters</b> in the toolbar. &nbsp;•&nbsp;
+    In Edit mode, drag a bar to move it or drag its right edge to resize — it snaps to individual <b>weeks (W1–W4)</b> within each month, and works together with the <b>project / status filters</b> in the toolbar. You can also set exact From/To week in the sub-step editor. &nbsp;•&nbsp;
     Set status to <b>✓ Completed</b> and enter a completion date to draw a dated marker on that sub-step's bar. &nbsp;•&nbsp;
     Use the <b>💰 Budget</b> button to show/hide the budget column, and the progress ring in the header for an overall completion memo.
   </p>
@@ -538,6 +538,11 @@ function uid(){ return 'id'+Math.random().toString(36).slice(2,10); }
 // fixed 8-month window) into the new startMonth/endMonth fields, if it
 // doesn't have them yet. Safe to call repeatedly — a no-op once migrated.
 function migrateRowMonths(r){
+  // Week-level fields (1-4 within the month). Any row saved before this
+  // feature existed simply gets the full month (week 1 -> week 4), so
+  // old data renders exactly as it did before.
+  if(r.startWeek==null) r.startWeek = 1;
+  if(r.endWeek==null) r.endWeek = 4;
   if(r.startMonth && r.endMonth) return;
   if(r.start!=null && r.span!=null){
     const clamp = i => Math.max(0, Math.min(LEGACY_BASE_MONTHS.length-1, i));
@@ -565,15 +570,28 @@ function recomputeMonthsRange(){
   TOTAL_COLS = MONTHS.length * 4;
 }
 
-// Map a row's startMonth/endMonth to week-column coordinates against the
-// CURRENT MONTHS array (whole-month blocks, 4 columns per month).
-function monthSpanToCols(startMonth, endMonth){
-  let si = MONTHS.indexOf(startMonth);
-  let ei = MONTHS.indexOf(endMonth);
-  if(si===-1) si = 0;
-  if(ei===-1) ei = MONTHS.length-1;
-  if(ei<si) ei = si;
-  return { start: si*4+1, span:(ei-si+1)*4 };
+// Map a (month, week) pair to an absolute 1-based week-column index
+// against the CURRENT MONTHS array (4 columns per month, week 1-4).
+function monthWeekToCol(month, week){
+  let mi = MONTHS.indexOf(month);
+  if(mi===-1) mi = 0;
+  const w = Math.max(1, Math.min(4, week||1));
+  return mi*4 + w;
+}
+// Inverse of the above: absolute 1-based week-column index -> {month, week}.
+function colToMonthWeek(colAbs){
+  const idx = Math.max(1, Math.min(TOTAL_COLS, colAbs)) - 1;
+  const mi = Math.floor(idx/4);
+  const week = (idx%4) + 1;
+  return { month: MONTHS[Math.max(0, Math.min(MONTHS.length-1, mi))], week };
+}
+// Map a row's startMonth/startWeek -> endMonth/endWeek to week-column
+// coordinates (start col + span, both in week-columns) for drawing bars.
+function rowSpanToCols(r){
+  let s = monthWeekToCol(r.startMonth, r.startWeek||1);
+  let e = monthWeekToCol(r.endMonth, r.endWeek||4);
+  if(e<s) e = s;
+  return { start: s, span: e-s+1 };
 }
 
 function dateToPos(dateStr){
@@ -634,7 +652,7 @@ const FIREBASE_CONFIG = {
   appId: "1:775489791813:web:7cee10c9c9f61521fa802c",
   // TODO: paste the databaseURL from Realtime Database > Data tab, e.g.:
   // "https://cbt-th-5103d-default-rtdb.asia-southeast1.firebasedatabase.app"
-  databaseURL: "https://project-schedule-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app/"
+  databaseURL: "https://console.firebase.google.com/u/0/project/project-schedule-dashboard/database/project-schedule-dashboard-default-rtdb/data/~2F"
 };
 const DB_PATH = 'labScheduleDashboard/v4'; // change this if you want a fresh/separate dataset
 
@@ -899,7 +917,7 @@ function openGroupModal(gid){
     const title = document.getElementById('m-title').value.trim();
     if(!title){ alert('Please enter a group title.'); return; }
     if(isNew){
-      data.push({id:uid(), title, rows:[{id:uid(), label:"New sub-step", startMonth:BASE_START, endMonth:BASE_START, style:"solid", category:"other", requirement:"", pic:"", note:"", dueDate:"", budget:null, completedDate:""}]});
+      data.push({id:uid(), title, rows:[{id:uid(), label:"New sub-step", startMonth:BASE_START, endMonth:BASE_START, startWeek:1, endWeek:4, style:"solid", category:"other", requirement:"", pic:"", note:"", dueDate:"", budget:null, completedDate:""}]});
     } else {
       g.title = title;
     }
@@ -913,6 +931,9 @@ function openRowModal(gid, rid){
   const r = isNew ? null : g.rows.find(r=>r.id===rid);
   const fromVal = isNew ? BASE_START : r.startMonth;
   const toVal = isNew ? BASE_START : r.endMonth;
+  const fromWeekVal = isNew ? 1 : (r.startWeek||1);
+  const toWeekVal = isNew ? 4 : (r.endWeek||4);
+  const WEEK_OPTIONS = [1,2,3,4];
   const styleVal = isNew ? 'solid' : r.style;
   const catVal = isNew ? 'other' : (r.category || 'other');
   const completedDateVal = isNew ? '' : (r.completedDate || '');
@@ -928,11 +949,21 @@ function openRowModal(gid, rid){
         <select id="m-from">${MONTH_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===fromVal?'selected':''}>${o.label}</option>`).join('')}</select>
       </div>
       <div class="field">
+        <label>From (week 1–4)</label>
+        <select id="m-from-week">${WEEK_OPTIONS.map(w=>`<option value="${w}" ${w===fromWeekVal?'selected':''}>Week ${w}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
         <label>To (month)</label>
         <select id="m-to">${MONTH_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===toVal?'selected':''}>${o.label}</option>`).join('')}</select>
       </div>
+      <div class="field">
+        <label>To (week 1–4)</label>
+        <select id="m-to-week">${WEEK_OPTIONS.map(w=>`<option value="${w}" ${w===toWeekVal?'selected':''}>Week ${w}</option>`).join('')}</select>
+      </div>
     </div>
-    <p style="margin:-6px 0 13px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);">Bars run the full width of each selected month. Choosing a month outside the current chart (e.g. into 2027 or beyond) automatically extends the timeline.</p>
+    <p style="margin:-6px 0 13px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);">Bars run from the chosen week of the "From" month to the chosen week of the "To" month. Choosing a month outside the current chart (e.g. into 2027 or beyond) automatically extends the timeline.</p>
     <div class="field-row">
       <div class="field">
         <label>Status</label>
@@ -999,7 +1030,10 @@ function openRowModal(gid, rid){
     if(!label){ alert('Please enter a label.'); return; }
     let fromMonth = document.getElementById('m-from').value;
     let toMonth = document.getElementById('m-to').value;
-    if(toMonth < fromMonth) toMonth = fromMonth;
+    let fromWeek = parseInt(document.getElementById('m-from-week').value, 10);
+    let toWeek = parseInt(document.getElementById('m-to-week').value, 10);
+    if(toMonth < fromMonth){ toMonth = fromMonth; }
+    if(toMonth === fromMonth && toWeek < fromWeek){ toWeek = fromWeek; }
     const style = document.getElementById('m-style').value;
     const category = document.getElementById('m-cat').value;
     const requirement = document.getElementById('m-requirement').value.trim();
@@ -1012,9 +1046,10 @@ function openRowModal(gid, rid){
     if(style==='completed' && !completedDate){ alert('Please enter the completed date.'); return; }
     if(style!=='completed') completedDate = '';
     if(isNew){
-      g.rows.push({id:uid(), label, startMonth:fromMonth, endMonth:toMonth, style, category, requirement, pic, note, dueDate, budget, completedDate});
+      g.rows.push({id:uid(), label, startMonth:fromMonth, endMonth:toMonth, startWeek:fromWeek, endWeek:toWeek, style, category, requirement, pic, note, dueDate, budget, completedDate});
     } else {
-      r.label = label; r.startMonth = fromMonth; r.endMonth = toMonth; r.style = style;
+      r.label = label; r.startMonth = fromMonth; r.endMonth = toMonth;
+      r.startWeek = fromWeek; r.endWeek = toWeek; r.style = style;
       r.category = category; r.requirement = requirement; r.pic = pic; r.note = note;
       r.dueDate = dueDate; r.budget = budget; r.completedDate = completedDate;
     }
@@ -1174,11 +1209,13 @@ function render(){
       }
       const bar=document.createElement('div');
       bar.className='bar '+r.style+' cat-'+cat;
-      const cols = monthSpanToCols(r.startMonth, r.endMonth);
+      const cols = rowSpanToCols(r);
       bar.style.left=((cols.start-1)*colW+2)+'px';
       bar.style.width=(cols.span*colW-4)+'px';
       const statusLabel = r.style==='completed' ? 'completed' : (r.style==='solid'?'in progress':'planned');
-      bar.title=r.label+' — '+statusLabel+' · '+CATEGORY_LABELS[cat]+' · '+monthLabel(r.startMonth)+(r.endMonth!==r.startMonth?(' → '+monthLabel(r.endMonth)):'')+(document.body.classList.contains('edit-mode')?' · drag to move, drag right edge to resize':'');
+      const fromTag = monthLabel(r.startMonth)+' W'+(r.startWeek||1);
+      const toTag = monthLabel(r.endMonth)+' W'+(r.endWeek||4);
+      bar.title=r.label+' — '+statusLabel+' · '+CATEGORY_LABELS[cat]+' · '+fromTag+(toTag!==fromTag?(' → '+toTag):'')+(document.body.classList.contains('edit-mode')?' · drag to move, drag right edge to resize':'');
       bar.textContent = r.style==='dashed' ? '···' : '';
       attachNoteHover(bar, r.note);
       const resizeHandle = document.createElement('div');
@@ -1244,15 +1281,14 @@ function attachBarDrag(bar, resizeHandle, gid, rid){
     if(!mode) return;
     const dx = e.clientX - startX;
     if(Math.abs(dx) > 3) moved = true;
-    const monthW = colW*4;
     if(mode==='move'){
       let newLeft = startLeftPx + dx;
       newLeft = Math.max(2, Math.min(newLeft, TOTAL_COLS*colW - parseFloat(bar.style.width) - 2));
-      newLeft = Math.round((newLeft-2)/monthW)*monthW + 2; // live-snap to month boundaries
+      newLeft = Math.round((newLeft-2)/colW)*colW + 2; // live-snap to week-column boundaries
       bar.style.left = newLeft+'px';
     } else if(mode==='resize'){
-      let newWidth = Math.max(monthW-4, startWidthPx + dx);
-      newWidth = Math.round((newWidth+4)/monthW)*monthW - 4; // live-snap to whole months
+      let newWidth = Math.max(colW-4, startWidthPx + dx);
+      newWidth = Math.round((newWidth+4)/colW)*colW - 4; // live-snap to whole week-columns
       bar.style.width = newWidth+'px';
     }
   });
@@ -1262,20 +1298,23 @@ function attachBarDrag(bar, resizeHandle, gid, rid){
     if(moved){
       const r = getRow();
       if(r){
-        const monthW = colW*4; // dragging/resizing now snaps to whole months
+        // dragging/resizing now snaps to individual week-columns (1-4 per month)
         if(mode==='move'){
           const left = parseFloat(bar.style.left);
-          const spanMonths = Math.max(1, Math.round(parseFloat(bar.style.width)/monthW));
-          let newStartIdx = Math.round((left-2)/monthW);
-          newStartIdx = Math.max(0, Math.min(newStartIdx, MONTHS.length - spanMonths));
-          const newEndIdx = newStartIdx + spanMonths - 1;
-          r.startMonth = MONTHS[newStartIdx];
-          r.endMonth = MONTHS[newEndIdx];
+          const spanCols = Math.max(1, Math.round(parseFloat(bar.style.width)/colW));
+          let newStartAbs = Math.round((left-2)/colW) + 1;
+          newStartAbs = Math.max(1, Math.min(newStartAbs, TOTAL_COLS - spanCols + 1));
+          const newEndAbs = newStartAbs + spanCols - 1;
+          const startMW = colToMonthWeek(newStartAbs);
+          const endMW = colToMonthWeek(newEndAbs);
+          r.startMonth = startMW.month; r.startWeek = startMW.week;
+          r.endMonth = endMW.month; r.endWeek = endMW.week;
         } else if(mode==='resize'){
-          const si = Math.max(0, MONTHS.indexOf(r.startMonth));
-          let spanMonths = Math.max(1, Math.round((parseFloat(bar.style.width)+4)/monthW));
-          const newEndIdx = Math.min(MONTHS.length-1, si+spanMonths-1);
-          r.endMonth = MONTHS[newEndIdx];
+          const startAbs = monthWeekToCol(r.startMonth, r.startWeek||1);
+          let spanCols = Math.max(1, Math.round((parseFloat(bar.style.width)+4)/colW));
+          const newEndAbs = Math.min(TOTAL_COLS, startAbs + spanCols - 1);
+          const endMW = colToMonthWeek(newEndAbs);
+          r.endMonth = endMW.month; r.endWeek = endMW.week;
         }
         saveData();
       }
