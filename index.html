@@ -20,18 +20,10 @@
     --planned-fill:#F4E9D4;
     --rust:#C0472A;
 
-    /* project category colors (progress bar coding) */
-    --cat-ns:#0BA12F;         /* green  = N-S fertilizer project */
-    --cat-ns-fill:#DCEAE3;
-    --cat-scaleup:#10A2C7;    /* blue = scale-up project */
-    --cat-scaleup-fill:#DAE4F0;
-    --cat-other:#C97A62;     /* orange = shared with other projects */
-    --cat-other-fill:#E6E6E2;
-
     --row-h:38px;
     --header-h:56px;
     --col-w:30px;
-    --left-w:660px;
+    --left-w:716px;
     --complete:#2E6F5C;
     --accent:#8A5CC7;
   }
@@ -86,9 +78,8 @@
   .swatch.solid{background:var(--ink-soft);}
   .swatch.dashed{background:#fff;border:2px dashed var(--ink-soft);}
   .swatch.today{width:2px;height:16px;background:var(--rust);border-radius:0;}
-  .swatch.cat-ns{background:var(--cat-ns);}
-  .swatch.cat-scaleup{background:var(--cat-scaleup);}
-  .swatch.cat-other{background:var(--cat-other);}
+  .swatch.dueline{width:3px;height:16px;background:var(--rust);border-radius:0;}
+  .swatch.completeline{width:3px;height:16px;background:var(--ink);border-radius:0;}
 
   /* ===== toolbar ===== */
   .toolbar{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap;flex-shrink:0;}
@@ -106,6 +97,10 @@
   .toolbar .spacer{flex:1;}
   .savepill{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--solid);opacity:0;transition:opacity .3s;}
   .savepill.show{opacity:1;}
+
+  .zoom-controls{display:flex;align-items:center;gap:4px;}
+  .zoom-controls .btn{width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;font-size:13px;}
+  .zoom-pct{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);min-width:36px;text-align:center;}
 
   .filter-select{
     font-family:'IBM Plex Mono',monospace;font-size:10.5px;background:var(--paper);
@@ -125,11 +120,15 @@
 
   .progress-pop{
     position:absolute;top:calc(100% + 8px);right:0;background:var(--paper);border:1px solid var(--line);
-    border-radius:10px;box-shadow:0 10px 28px rgba(28,38,32,.18);padding:14px 16px;width:230px;z-index:60;
-    display:none;font-family:'IBM Plex Sans',sans-serif;
+    border-radius:10px;box-shadow:0 10px 28px rgba(28,38,32,.18);padding:14px 16px;width:270px;z-index:60;
+    display:none;font-family:'IBM Plex Sans',sans-serif;max-height:70vh;overflow-y:auto;
   }
   .progress-pop.show{display:block;}
   .progress-pop h3{margin:0 0 10px;font-family:'Space Grotesk',sans-serif;font-size:12.5px;}
+  .progress-pop .pp-sub-title{
+    font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--ink-soft);margin:10px 0 6px;border-top:1px solid var(--line);padding-top:8px;
+  }
   .progress-pop .pp-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ink-soft);margin-bottom:6px;}
   .progress-pop .pp-row b{color:var(--ink);font-family:'IBM Plex Mono',monospace;}
   .progress-badge-wrap{position:relative;}
@@ -205,7 +204,7 @@
   .lhead .c-label{flex:1;min-width:120px;}
   .lhead .c-req{width:170px;flex-shrink:0;}
   .lhead .c-due{width:96px;flex-shrink:0;}
-  .lhead .c-pic{width:64px;flex-shrink:0;}
+  .lhead .c-pic{width:120px;flex-shrink:0;}
   .lhead .c-budget{width:88px;flex-shrink:0;display:none;}
   body.show-budget .lhead .c-budget{display:block;}
   .lhead .c-move{width:40px;flex-shrink:0;}
@@ -251,13 +250,18 @@
   }
   .lrow .r-check{width:16px;flex-shrink:0;}
   .lrow .r-label{flex:1;min-width:120px;font-size:11.5px;color:var(--ink);cursor:default;}
+  .lrow .r-label.is-completed{color:var(--ink-soft);}
+  .done-badge{
+    display:inline-block;margin-left:6px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:700;
+    color:#fff;background:var(--complete);padding:1px 6px;border-radius:8px;letter-spacing:.03em;vertical-align:middle;
+  }
   .lrow .r-req{
     width:170px;flex-shrink:0;font-size:10.5px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;
     text-overflow:ellipsis;
   }
   .lrow .r-due{width:96px;flex-shrink:0;}
   .lrow .r-pic{
-    width:64px;flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);
+    width:120px;flex-shrink:0;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
   .lrow .r-budget{
@@ -266,7 +270,7 @@
   }
   body.show-budget .lrow .r-budget{display:block;}
   input.pic-input{
-    width:64px;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 5px;border:1px solid transparent;
+    width:118px;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 5px;border:1px solid transparent;
     border-radius:4px;background:transparent;color:var(--ink);
   }
   input.due-input{
@@ -287,15 +291,8 @@
     position:absolute;top:9px;height:20px;border-radius:5px;display:flex;align-items:center;padding:0 8px;
     font-family:'IBM Plex Mono',monospace;font-size:9.5px;white-space:nowrap;overflow:hidden;cursor:default;
   }
-  .bar.solid.cat-ns{background:var(--cat-ns);color:#F3F7F4;border:1px solid var(--cat-ns);}
-  .bar.dashed.cat-ns{background:var(--cat-ns-fill);color:#1F4F41;border:2px dashed var(--cat-ns);}
-  .bar.solid.cat-scaleup{background:var(--cat-scaleup);color:#F3F7F4;border:1px solid var(--cat-scaleup);}
-  .bar.dashed.cat-scaleup{background:var(--cat-scaleup-fill);color:#1B3E6B;border:2px dashed var(--cat-scaleup);}
-  .bar.solid.cat-other{background:var(--cat-other);color:#F3F7F4;border:1px solid var(--cat-other);}
-  .bar.dashed.cat-other{background:var(--cat-other-fill);color:#1C2620;border:2px dashed var(--cat-other);}
-  .bar.completed.cat-ns{background:var(--cat-ns);color:#F3F7F4;border:1px solid var(--cat-ns);}
-  .bar.completed.cat-scaleup{background:var(--cat-scaleup);color:#F3F7F4;border:1px solid var(--cat-scaleup);}
-  .bar.completed.cat-other{background:var(--cat-other);color:#F3F7F4;border:1px solid var(--cat-other);}
+  .bar.solid{border-width:1px;border-style:solid;}
+  .bar.dashed{border-width:2px;border-style:dashed;}
   .bar.completed{opacity:.55;filter:saturate(.6);}
   .bar.completed::after{content:"✓";position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;}
   .bar:hover{filter:brightness(1.1);z-index:5;box-shadow:0 2px 6px rgba(28,38,32,.18);}
@@ -309,11 +306,18 @@
   .today-line{position:absolute;top:0;width:2px;background:var(--rust);z-index:6;pointer-events:none;}
   .today-tag{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--rust);white-space:nowrap;}
 
-  .complete-marker{position:absolute;top:4px;bottom:4px;width:2px;background:var(--ink);z-index:7;pointer-events:none;}
+  .complete-marker{position:absolute;top:4px;bottom:4px;width:3px;background:var(--ink);z-index:8;pointer-events:none;}
   .complete-marker .cm-tag{
     position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:2px;
     font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--ink);background:var(--paper);
     padding:1px 3px;border-radius:3px;white-space:nowrap;border:1px solid var(--line);
+  }
+
+  .due-marker{position:absolute;top:4px;bottom:4px;width:3px;background:var(--rust);z-index:7;pointer-events:none;}
+  .due-marker .dm-tag{
+    position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;
+    font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--rust);background:var(--paper);
+    padding:1px 3px;border-radius:3px;white-space:nowrap;border:1px solid var(--rust);
   }
 
   .footnote{margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);line-height:1.5;flex-shrink:0;max-height:60px;overflow-y:auto;}
@@ -367,6 +371,15 @@
     padding:8px 6px;border-radius:6px;cursor:pointer;
   }
   .modal-actions .btn-delete:hover{border-color:var(--rust);}
+
+  .cat-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .cat-row input[type=color]{width:34px;height:34px;padding:0;border:1px solid var(--line);border-radius:6px;cursor:pointer;flex-shrink:0;}
+  .cat-row input[type=text]{
+    flex:1;font-family:'IBM Plex Sans',sans-serif;font-size:13px;padding:7px 9px;
+    border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);
+  }
+  .cat-row input[type=text]:focus{outline:none;border-color:var(--solid);}
+  .cat-row .icon-btn{flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -380,11 +393,8 @@
       <p class="sync-tag" id="syncTag">● Connecting…</p>
     </div>
     <div class="legend">
-      <div class="legend-group">
+      <div class="legend-group" id="legendProjectGroup">
         <span class="legend-title">Project</span>
-        <div class="legend-item"><span class="swatch cat-ns"></span> N–S fertilizer</div>
-        <div class="legend-item"><span class="swatch cat-scaleup"></span> Scale-up</div>
-        <div class="legend-item"><span class="swatch cat-other"></span> Shared / other</div>
       </div>
       <div class="legend-group">
         <span class="legend-title">Status</span>
@@ -392,6 +402,8 @@
         <div class="legend-item"><span class="swatch dashed"></span> Planned</div>
         <div class="legend-item"><span class="swatch solid" style="opacity:.55"></span> ✓ Completed</div>
         <div class="legend-item"><span class="swatch today"></span> Today</div>
+        <div class="legend-item"><span class="swatch dueline"></span> Due date</div>
+        <div class="legend-item"><span class="swatch completeline"></span> Completed date</div>
       </div>
       <div class="progress-badge-wrap">
         <div class="progress-badge" id="progressBadge" title="Click for breakdown">
@@ -420,13 +432,11 @@
       <span class="unlocked-txt">✎ Edit mode on — use the pencil icons to change items, ▲▼ to reorder, hover/click a task to see its note</span>
     </span>
     <button class="btn edit-only" onclick="openGroupModal(null)">+ Add task group</button>
+    <button class="btn ghost edit-only" onclick="openCategoryModal()">🎨 Projects</button>
     <button class="btn danger" id="deleteSelectedBtn" onclick="deleteSelected()">🗑 Delete selected</button>
 
     <select class="filter-select" id="filterProject" title="Filter by project">
       <option value="all">All projects</option>
-      <option value="ns">N–S fertilizer</option>
-      <option value="scaleup">Scale-up</option>
-      <option value="other">Shared / other</option>
     </select>
     <select class="filter-select" id="filterStatus" title="Filter by status">
       <option value="all">All statuses</option>
@@ -436,6 +446,14 @@
     </select>
 
     <button class="btn ghost toggle edit-only" id="budgetToggle" title="Show/hide Budget column">💰 Budget</button>
+    <button class="btn ghost edit-only" id="exportBtn" title="Export all data as a JSON file">⬇ Export JSON</button>
+
+    <div class="zoom-controls">
+      <button class="btn ghost" id="zoomOut" title="Zoom out">－</button>
+      <span class="zoom-pct" id="zoomPct">100%</span>
+      <button class="btn ghost" id="zoomIn" title="Zoom in">＋</button>
+      <button class="btn ghost" id="zoomReset" title="Reset zoom">⟳</button>
+    </div>
 
     <div class="spacer"></div>
     <span class="savepill" id="savePill">✓ Saved</span>
@@ -472,8 +490,12 @@
     The board is locked by default. Turn on <b>Edit mode</b> above and enter the password to reveal checkboxes, pencil icons, and delete controls — every change still asks for confirmation. &nbsp;•&nbsp;
     In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor. Use the <b>▲ / ▼</b> buttons to reorder task groups and sub-steps. &nbsp;•&nbsp;
     In Edit mode, drag a bar to move it or drag its right edge to resize — it snaps to individual <b>weeks (W1–W4)</b> within each month, and works together with the <b>project / status filters</b> in the toolbar. You can also set exact From/To week in the sub-step editor. &nbsp;•&nbsp;
-    Set status to <b>✓ Completed</b> and enter a completion date to draw a dated marker on that sub-step's bar. &nbsp;•&nbsp;
-    Use the <b>💰 Budget</b> button to show/hide the budget column, and the progress ring in the header for an overall completion memo.
+    A thick <b>red</b> line marks a sub-step's Due date and a thick <b>black</b> line marks its Completed date, both drawn on the bar itself. &nbsp;•&nbsp;
+    Set status to <b>✓ Completed</b> and enter a completion date — the sub-step's label also gets a "Completed" badge for quick scanning. &nbsp;•&nbsp;
+    Use <b>🎨 Projects</b> (Edit mode) to add, rename, recolour, or delete projects — every project/status filter, legend swatch, and bar colour updates automatically. &nbsp;•&nbsp;
+    Use the <b>－ / ＋</b> zoom buttons (top right of the toolbar) to scale the whole board, like a browser zoom. &nbsp;•&nbsp;
+    Use <b>⬇ Export JSON</b> to download the full dataset (tasks + projects) as a .json file, e.g. to import into another dashboard. &nbsp;•&nbsp;
+    Use the <b>💰 Budget</b> button to show/hide the budget column, and click the progress ring in the header for an overall completion memo with a project and PIC breakdown.
   </p>
 
 </div>
@@ -529,6 +551,7 @@ let MONTHS = buildMonthRange(BASE_START, BASE_END); // current visible range, re
 let TOTAL_COLS = MONTHS.length * 4;
 const colW = 30;
 const STORAGE_KEY = 'labScheduleDataV4';
+const CATS_STORAGE_KEY = 'labScheduleCategoriesV4';
 const UPDATED_KEY = 'labScheduleUpdatedV4';
 const EDIT_PASSWORD = '5656';
 
@@ -610,7 +633,46 @@ function dateToPos(dateStr){
 }
 
 
-const CATEGORY_LABELS = { ns:'N–S fertilizer project', scaleup:'Scale-up project', other:'Shared / other project' };
+// Projects ("categories") are now fully editable at runtime — see
+// openCategoryModal(). The three below are just the starting set; ids
+// 'ns'/'scaleup'/'other' are kept so existing saved sub-steps (which
+// store r.category as one of these ids) keep working unchanged.
+const DEFAULT_CATEGORIES = [
+  { id:'ns',      label:'N–S fertilizer project',   color:'#0BA12F', fill:'#DCEAE3' },
+  { id:'scaleup', label:'Scale-up project',          color:'#10A2C7', fill:'#DAE4F0' },
+  { id:'other',   label:'Shared / other project',    color:'#C97A62', fill:'#E6E6E2' }
+];
+let categories = JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+
+function getCategory(id){
+  return categories.find(c=>c.id===id) || categories[0] || { id:'other', label:'Other', color:'#8A8F87', fill:'#E6E6E2' };
+}
+// Mixes a hex color toward white to derive a light "fill" tone for the
+// dashed/planned bar style, so newly-added projects don't need the user
+// to pick two colors by hand.
+function lightenHex(hex, amt=0.82){
+  hex = (hex||'#8A8F87').replace('#','');
+  if(hex.length===3) hex = hex.split('').map(x=>x+x).join('');
+  const num = parseInt(hex,16) || 0x8A8F87;
+  const r = (num>>16)&255, g=(num>>8)&255, b=num&255;
+  const mix = c => Math.round(c + (255-c)*amt);
+  return '#'+[mix(r),mix(g),mix(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+// Paints a bar element's colors from its status + project, replacing the
+// old fixed CSS classes (.cat-ns / .cat-scaleup / .cat-other) so any
+// number of custom projects/colors can be used.
+function paintBar(bar, style, catId){
+  const cat = getCategory(catId);
+  if(style==='dashed'){
+    bar.style.background = cat.fill || lightenHex(cat.color);
+    bar.style.borderColor = cat.color;
+    bar.style.color = 'var(--ink)';
+  } else {
+    bar.style.background = cat.color;
+    bar.style.borderColor = cat.color;
+    bar.style.color = '#F3F7F4';
+  }
+}
 
 const DEFAULT_DATA = [];
 
@@ -676,14 +738,19 @@ function loadLocalFallback(){
   try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch(e){}
   return JSON.parse(JSON.stringify(DEFAULT_DATA));
 }
+function loadLocalCategories(){
+  try{ const raw = localStorage.getItem(CATS_STORAGE_KEY); if(raw){ const c = JSON.parse(raw); if(Array.isArray(c) && c.length) return c; } }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+}
 
 function initFirebase(){
   const looksConfigured = FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('YOUR_')
                         && FIREBASE_CONFIG.databaseURL && FIREBASE_CONFIG.databaseURL.startsWith('https://');
   if(!looksConfigured){
     data = loadLocalFallback();
+    categories = loadLocalCategories();
     setSyncTag('warn', '● Local only — Firebase not configured (see comments in the HTML)');
-    render(); renderUpdatedTag();
+    render(); renderUpdatedTag(); refreshCategoryUI();
     return;
   }
   try{
@@ -695,25 +762,29 @@ function initFirebase(){
       const val = snap.val();
       if(val && val.data){
         data = val.data;
+        categories = (Array.isArray(val.categories) && val.categories.length) ? val.categories : JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
       } else {
         // nothing on the server yet — seed it with the default schedule
-        set(dbRef, { data: data, updatedAt: new Date().toISOString() });
+        set(dbRef, { data: data, categories: categories, updatedAt: new Date().toISOString() });
       }
       render();
       renderUpdatedTag(val ? val.updatedAt : null);
+      refreshCategoryUI();
       setSyncTag('ok', '● Synced — live with everyone editing this dashboard');
     }, err=>{
       console.error('Firebase read failed:', err);
       data = loadLocalFallback();
+      categories = loadLocalCategories();
       firebaseEnabled = false;
-      render(); renderUpdatedTag();
+      render(); renderUpdatedTag(); refreshCategoryUI();
       setSyncTag('err', '● Sync error — showing this browser\'s local copy only');
     });
     firebaseEnabled = true;
   }catch(e){
     console.error('Firebase init failed:', e);
     data = loadLocalFallback();
-    render(); renderUpdatedTag();
+    categories = loadLocalCategories();
+    render(); renderUpdatedTag(); refreshCategoryUI();
     setSyncTag('err', '● Sync error — showing this browser\'s local copy only');
   }
 }
@@ -721,12 +792,13 @@ function initFirebase(){
 function saveData(){
   const now = new Date().toISOString();
   if(firebaseEnabled && dbRef){
-    set(dbRef, { data: data, updatedAt: now }).catch(err=>{
+    set(dbRef, { data: data, categories: categories, updatedAt: now }).catch(err=>{
       console.error('Firebase write failed:', err);
       setSyncTag('err', '● Save failed — check your connection and try again');
     });
   } else {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(CATS_STORAGE_KEY, JSON.stringify(categories));
     localStorage.setItem(UPDATED_KEY, now);
     renderUpdatedTag(now);
   }
@@ -776,14 +848,63 @@ function rowMatchesFilter(r, cat){
   return true;
 }
 
+/* ---------- Dynamic project ("category") legend + filter dropdown ---------- */
+function renderProjectLegend(){
+  const group = document.getElementById('legendProjectGroup');
+  group.querySelectorAll('.legend-item').forEach(e=>e.remove());
+  categories.forEach(c=>{
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<span class="swatch" style="background:${c.color}"></span> ${c.label}`;
+    group.appendChild(item);
+  });
+}
+function renderProjectFilterOptions(){
+  const sel = document.getElementById('filterProject');
+  const prevVal = sel.value || filterProject;
+  sel.innerHTML = '<option value="all">All projects</option>' +
+    categories.map(c=>`<option value="${c.id}">${c.label}</option>`).join('');
+  sel.value = categories.some(c=>c.id===prevVal) ? prevVal : 'all';
+  filterProject = sel.value;
+}
+function refreshCategoryUI(){
+  renderProjectLegend();
+  renderProjectFilterOptions();
+}
+
 /* ---------- Budget column toggle ---------- */
 document.getElementById('budgetToggle').addEventListener('click', ()=>{
   showBudget = !showBudget;
   document.body.classList.toggle('show-budget', showBudget);
   document.getElementById('budgetToggle').classList.toggle('active', showBudget);
-  document.documentElement.style.setProperty('--left-w', showBudget ? '748px' : '660px');
+  document.documentElement.style.setProperty('--left-w', showBudget ? '804px' : '716px');
   setTimeout(()=>{ updateVScrollThumb(); }, 0);
 });
+
+/* ---------- Export data as a JSON file (e.g. to load into another dashboard) ---------- */
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const payload = { data, categories, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'lab-schedule-export-' + todayISO + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+/* ---------- Zoom controls (scales the whole board, like a browser zoom) ---------- */
+let zoomPct = 100;
+function applyZoom(){
+  document.querySelector('.wrap').style.zoom = (zoomPct/100);
+  document.getElementById('zoomPct').textContent = zoomPct + '%';
+  setTimeout(()=>{ updateVScrollThumb(); drawTodayLine(); }, 0);
+}
+document.getElementById('zoomIn').addEventListener('click', ()=>{ zoomPct = Math.min(200, zoomPct+10); applyZoom(); });
+document.getElementById('zoomOut').addEventListener('click', ()=>{ zoomPct = Math.max(60, zoomPct-10); applyZoom(); });
+document.getElementById('zoomReset').addEventListener('click', ()=>{ zoomPct = 100; applyZoom(); });
 
 /* ---------- Progress summary popover ---------- */
 const progressBadge = document.getElementById('progressBadge');
@@ -797,11 +918,17 @@ document.addEventListener('click', (e)=>{
 });
 function updateProgressSummary(){
   let total=0, done=0;
-  const byCat = { ns:{total:0,done:0}, scaleup:{total:0,done:0}, other:{total:0,done:0} };
+  const byCat = {};
+  categories.forEach(c=>{ byCat[c.id] = {total:0,done:0}; });
+  const byPic = {};
   data.forEach(g=>g.rows.forEach(r=>{
-    const cat = r.category || 'other';
+    const cat = getCategory(r.category).id;
+    if(!byCat[cat]) byCat[cat] = {total:0,done:0};
     total++; byCat[cat].total++;
-    if(r.style==='completed'){ done++; byCat[cat].done++; }
+    const picKey = (r.pic && r.pic.trim()) ? r.pic.trim() : 'Unassigned';
+    if(!byPic[picKey]) byPic[picKey] = {total:0,done:0};
+    byPic[picKey].total++;
+    if(r.style==='completed'){ done++; byCat[cat].done++; byPic[picKey].done++; }
   }));
   const pct = total>0 ? Math.round((done/total)*100) : 0;
   document.getElementById('pbPct').textContent = pct + '%';
@@ -809,12 +936,26 @@ function updateProgressSummary(){
   const ring = document.getElementById('pbRingFg');
   ring.setAttribute('stroke-dasharray', circumference.toFixed(1));
   ring.setAttribute('stroke-dashoffset', (circumference*(1-pct/100)).toFixed(1));
+
+  const catRows = categories.map(c=>{
+    const b = byCat[c.id] || {total:0,done:0};
+    return `<div class="pp-row"><span>${c.label}</span><b>${b.done} / ${b.total}</b></div>`;
+  }).join('');
+  const picKeys = Object.keys(byPic).sort((a,b)=>{
+    if(a==='Unassigned') return 1;
+    if(b==='Unassigned') return -1;
+    return a.localeCompare(b);
+  });
+  const picRows = picKeys.length ? picKeys.map(p=>`<div class="pp-row"><span>${p}</span><b>${byPic[p].done} / ${byPic[p].total}</b></div>`).join('')
+                                  : '<div class="pp-row"><span>—</span><b>—</b></div>';
+
   progressPop.innerHTML = `
     <h3>Overall progress memo</h3>
     <div class="pp-row"><span>All sub-steps</span><b>${done} / ${total} (${pct}%)</b></div>
-    <div class="pp-row"><span>N–S fertilizer</span><b>${byCat.ns.done} / ${byCat.ns.total}</b></div>
-    <div class="pp-row"><span>Scale-up</span><b>${byCat.scaleup.done} / ${byCat.scaleup.total}</b></div>
-    <div class="pp-row"><span>Shared / other</span><b>${byCat.other.done} / ${byCat.other.total}</b></div>
+    <div class="pp-sub-title">By project</div>
+    ${catRows}
+    <div class="pp-sub-title">By PIC</div>
+    ${picRows}
   `;
 }
 
@@ -890,6 +1031,62 @@ const modalBox = document.getElementById('modalBox');
 function closeModal(){ overlay.classList.remove('show'); modalBox.innerHTML=''; }
 overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
 
+/* ---------- Manage projects (categories): add / rename / recolor / delete ---------- */
+function openCategoryModal(){
+  modalBox.innerHTML = `
+    <h2>Manage projects</h2>
+    <div id="catList"></div>
+    <button class="btn ghost" id="cat-add" type="button">+ Add project</button>
+    <div class="modal-actions">
+      <div class="spacer"></div>
+      <button class="btn-cancel" id="m-cancel">Close</button>
+    </div>
+  `;
+  overlay.classList.add('show');
+  renderCatList();
+  document.getElementById('m-cancel').onclick = closeModal;
+  document.getElementById('cat-add').onclick = ()=>{
+    const color = '#8A5CC7';
+    categories.push({ id:uid(), label:'New project', color, fill:lightenHex(color) });
+    saveData(); refreshCategoryUI(); renderCatList();
+  };
+}
+function renderCatList(){
+  const wrap = document.getElementById('catList');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  categories.forEach(c=>{
+    const row = document.createElement('div');
+    row.className = 'cat-row';
+    row.innerHTML = `
+      <input type="color" value="${c.color}" title="Project color">
+      <input type="text" value="${c.label.replace(/"/g,'&quot;')}" placeholder="Project name">
+      <button class="icon-btn" title="Delete project">🗑</button>
+    `;
+    const colorInput = row.querySelector('input[type=color]');
+    const textInput = row.querySelector('input[type=text]');
+    const delBtn = row.querySelector('button');
+    colorInput.addEventListener('change', ()=>{
+      c.color = colorInput.value; c.fill = lightenHex(c.color);
+      saveData(); render(); refreshCategoryUI();
+    });
+    textInput.addEventListener('change', ()=>{
+      c.label = textInput.value.trim() || c.label; textInput.value = c.label;
+      saveData(); render(); refreshCategoryUI();
+    });
+    delBtn.addEventListener('click', ()=>{
+      if(categories.length<=1){ alert('Keep at least one project — add a new one before deleting the last.'); return; }
+      const inUse = data.some(g=>g.rows.some(r=>r.category===c.id));
+      if(inUse && !confirm('This project is used by existing sub-steps. They will be reassigned to the first remaining project. Continue?')) return;
+      categories = categories.filter(x=>x.id!==c.id);
+      const fallbackId = categories[0].id;
+      data.forEach(g=>g.rows.forEach(r=>{ if(r.category===c.id) r.category = fallbackId; }));
+      saveData(); render(); refreshCategoryUI(); renderCatList();
+    });
+    wrap.appendChild(row);
+  });
+}
+
 function openGroupModal(gid){
   const isNew = gid===null;
   const g = isNew ? null : data.find(g=>g.id===gid);
@@ -917,7 +1114,7 @@ function openGroupModal(gid){
     const title = document.getElementById('m-title').value.trim();
     if(!title){ alert('Please enter a group title.'); return; }
     if(isNew){
-      data.push({id:uid(), title, rows:[{id:uid(), label:"New sub-step", startMonth:BASE_START, endMonth:BASE_START, startWeek:1, endWeek:4, style:"solid", category:"other", requirement:"", pic:"", note:"", dueDate:"", budget:null, completedDate:""}]});
+      data.push({id:uid(), title, rows:[{id:uid(), label:"New sub-step", startMonth:BASE_START, endMonth:BASE_START, startWeek:1, endWeek:4, style:"solid", category:(categories[0]?categories[0].id:'other'), requirement:"", pic:"", note:"", dueDate:"", budget:null, completedDate:""}]});
     } else {
       g.title = title;
     }
@@ -935,7 +1132,7 @@ function openRowModal(gid, rid){
   const toWeekVal = isNew ? 4 : (r.endWeek||4);
   const WEEK_OPTIONS = [1,2,3,4];
   const styleVal = isNew ? 'solid' : r.style;
-  const catVal = isNew ? 'other' : (r.category || 'other');
+  const catVal = isNew ? (categories[0] ? categories[0].id : 'other') : (getCategory(r.category).id);
   const completedDateVal = isNew ? '' : (r.completedDate || '');
   modalBox.innerHTML = `
     <h2>${isNew ? 'Add sub-step' : 'Edit sub-step'}</h2>
@@ -975,13 +1172,10 @@ function openRowModal(gid, rid){
       </div>
       <div class="field">
         <label>Progress colour / project</label>
-        <select id="m-cat">
-          <option value="ns" ${catVal==='ns'?'selected':''}>Green — N–S fertilizer project</option>
-          <option value="scaleup" ${catVal==='scaleup'?'selected':''}>Blueberry — Scale-up project</option>
-          <option value="other" ${catVal==='other'?'selected':''}>Orange — Shared / other project</option>
-        </select>
+        <select id="m-cat">${categories.map(c=>`<option value="${c.id}" ${c.id===catVal?'selected':''}>${c.label}</option>`).join('')}</select>
       </div>
     </div>
+    <p style="margin:-6px 0 13px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);">Need a different project or colour? Close this and use <b>🎨 Projects</b> in the toolbar.</p>
     <div class="field" id="m-completed-field" style="${styleVal==='completed'?'':'display:none;'}">
       <label>Completed date</label>
       <input type="date" id="m-completed-date" value="${completedDateVal}">
@@ -1121,12 +1315,13 @@ function render(){
 
     visibleRows.forEach((r)=>{
       const rIdx = g.rows.indexOf(r); // index within the FULL (unfiltered) list, for move up/down + disabling
-      const cat = r.category || 'other';
+      const catObj = getCategory(r.category);
+      const cat = catObj.id;
       const lrow = document.createElement('div');
       lrow.className='lrow';
       lrow.innerHTML = `
         <span class="r-check edit-only"><input type="checkbox" title="Select this sub-step for deletion"></span>
-        <span class="r-label">${r.label}</span>
+        <span class="r-label${r.style==='completed'?' is-completed':''}">${r.label}${r.style==='completed' ? '<span class="done-badge">✓ Completed</span>' : ''}</span>
         <span class="r-req" title="${(r.requirement||'').replace(/"/g,'&quot;')}">${r.requirement ? r.requirement : '—'}</span>
         <span class="r-due"></span>
         <span class="r-pic"></span>
@@ -1208,14 +1403,15 @@ function render(){
         rrow.appendChild(cell);
       }
       const bar=document.createElement('div');
-      bar.className='bar '+r.style+' cat-'+cat;
+      bar.className='bar '+r.style;
+      paintBar(bar, r.style, cat);
       const cols = rowSpanToCols(r);
       bar.style.left=((cols.start-1)*colW+2)+'px';
       bar.style.width=(cols.span*colW-4)+'px';
       const statusLabel = r.style==='completed' ? 'completed' : (r.style==='solid'?'in progress':'planned');
       const fromTag = monthLabel(r.startMonth)+' W'+(r.startWeek||1);
       const toTag = monthLabel(r.endMonth)+' W'+(r.endWeek||4);
-      bar.title=r.label+' — '+statusLabel+' · '+CATEGORY_LABELS[cat]+' · '+fromTag+(toTag!==fromTag?(' → '+toTag):'')+(document.body.classList.contains('edit-mode')?' · drag to move, drag right edge to resize':'');
+      bar.title=r.label+' — '+statusLabel+' · '+catObj.label+' · '+fromTag+(toTag!==fromTag?(' → '+toTag):'')+(document.body.classList.contains('edit-mode')?' · drag to move, drag right edge to resize':'');
       bar.textContent = r.style==='dashed' ? '···' : '';
       attachNoteHover(bar, r.note);
       const resizeHandle = document.createElement('div');
@@ -1224,7 +1420,22 @@ function render(){
       attachBarDrag(bar, resizeHandle, g.id, r.id);
       rrow.appendChild(bar);
 
-      // Completed marker: vertical tick at the completion date, with the date labeled
+      // Due date: thick red vertical marker, drawn whenever a due date is set
+      if(r.dueDate){
+        const duePos = dateToPos(r.dueDate);
+        if(duePos!=null){
+          const dueMarker = document.createElement('div');
+          dueMarker.className='due-marker';
+          dueMarker.style.left = duePos+'px';
+          const dueTag = document.createElement('div');
+          dueTag.className='dm-tag';
+          dueTag.textContent = '⏰ ' + r.dueDate;
+          dueMarker.appendChild(dueTag);
+          rrow.appendChild(dueMarker);
+        }
+      }
+
+      // Completed marker: thick black vertical tick at the completion date, with the date labeled
       if(r.style==='completed' && r.completedDate){
         const pos = dateToPos(r.completedDate);
         if(pos!=null){
@@ -1438,6 +1649,7 @@ function initVerticalScroll(){
 
 buildHeader();
 initVerticalScroll();
+refreshCategoryUI();
 initFirebase();
 window.addEventListener('resize', drawTodayLine);
 
@@ -1445,6 +1657,7 @@ window.addEventListener('resize', drawTodayLine);
 // static HTML uses inline onclick="..." for these entry points — so
 // attach them to window explicitly.
 window.openGroupModal = openGroupModal;
+window.openCategoryModal = openCategoryModal;
 window.deleteSelected = deleteSelected;
 </script>
 </body>
