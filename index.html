@@ -301,7 +301,7 @@
   .rrow .cell{width:var(--col-w);flex-shrink:0;border-right:1px dotted var(--line-soft);}
   .bar{
     position:absolute;top:9px;height:20px;border-radius:5px;display:flex;align-items:center;padding:0 8px;
-    font-family:'IBM Plex Mono',monospace;font-size:9.5px;white-space:nowrap;overflow:hidden;cursor:default;
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default;
   }
   .bar.solid{border-width:1px;border-style:solid;}
   .bar.dashed{border-width:2px;border-style:dashed;}
@@ -310,6 +310,7 @@
   .bar:hover{filter:brightness(1.1);z-index:5;box-shadow:0 2px 6px rgba(28,38,32,.18);}
   body.edit-mode .bar{cursor:grab;}
   body.edit-mode .bar.dragging{cursor:grabbing;z-index:20;box-shadow:0 4px 12px rgba(28,38,32,.3);}
+  .bar.bar-segment, body.edit-mode .bar.bar-segment{cursor:default;}
   .bar-resize{
     position:absolute;right:0;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:2;
   }
@@ -387,6 +388,23 @@
   }
   .cat-row input[type=text]:focus{outline:none;border-color:var(--solid);}
   .cat-row .icon-btn{flex-shrink:0;}
+
+  .seg-row{
+    display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;padding:8px 9px;
+    border:1px solid var(--line);border-radius:6px;background:var(--line-soft);
+  }
+  .seg-row select{
+    font-family:'IBM Plex Mono',monospace;font-size:10px;padding:5px 6px;border:1px solid var(--line);
+    border-radius:5px;background:#fff;color:var(--ink);
+  }
+  .seg-row select:focus{outline:none;border-color:var(--solid);}
+  .seg-row .seg-arrow{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);flex-shrink:0;}
+  .seg-row input[type=text]{
+    flex:1;min-width:130px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:6px 8px;
+    border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--ink);
+  }
+  .seg-row input[type=text]:focus{outline:none;border-color:var(--solid);}
+  .seg-row .icon-btn{flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -503,7 +521,7 @@
     The board is locked by default. Turn on <b>Edit mode</b> above and enter the password to reveal checkboxes, pencil icons, and delete controls — every change still asks for confirmation. &nbsp;•&nbsp;
     In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor. Use the <b>▲ / ▼</b> buttons to reorder task groups and sub-steps. Click the <b>▾ / ▸</b> arrow on a task group (any mode) to hide/show its sub-steps. &nbsp;•&nbsp;
     In Edit mode, drag a bar to move it or drag its right edge to resize — it snaps to individual <b>weeks (W1–W4)</b> within each month, and works together with the <b>project / status filters</b> in the toolbar. You can also set exact From/To week in the sub-step editor. &nbsp;•&nbsp;
-    A thick <b>red</b> line marks a sub-step's Due date and a thick <b>black</b> line marks its Completed date, both drawn on the bar itself. &nbsp;•&nbsp;
+    A thick <b>red</b> line marks a sub-step's Due date and a thick <b>black</b> line marks its Completed date, both drawn on the bar itself. In the sub-step editor, use <b>+ Add phase</b> to break one sub-step into several dated phases (e.g. Jul W1→W4 "waiting quotation", then Aug W1→W2 "onsite check"), each with its own status and short note shown right on the bar. &nbsp;•&nbsp;
     Set status to <b>✓ Completed</b> and enter a completion date — the sub-step's label also gets a "Completed" badge for quick scanning. &nbsp;•&nbsp;
     Use <b>🎨 Projects</b> (Edit mode) to add, rename, recolour, or delete projects — every project/status filter, legend swatch, and bar colour updates automatically. &nbsp;•&nbsp;
     Use the <b>－ / ＋</b> zoom buttons (top right of the toolbar) to scale the whole board, like a browser zoom. &nbsp;•&nbsp;
@@ -604,6 +622,10 @@ function recomputeMonthsRange(){
     migrateRowMonths(r);
     if(r.startMonth < minKey) minKey = r.startMonth;
     if(r.endMonth > maxKey) maxKey = r.endMonth;
+    (r.segments||[]).forEach(seg=>{
+      if(seg.startMonth && seg.startMonth < minKey) minKey = seg.startMonth;
+      if(seg.endMonth && seg.endMonth > maxKey) maxKey = seg.endMonth;
+    });
   }));
   MONTHS = buildMonthRange(minKey, maxKey);
   TOTAL_COLS = MONTHS.length * 4;
@@ -731,6 +753,7 @@ const FIREBASE_CONFIG = {
   // TODO: paste the databaseURL from Realtime Database > Data tab, e.g.:
   // "https://cbt-th-5103d-default-rtdb.asia-southeast1.firebasedatabase.app"
   databaseURL: "https://project-schedule-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app"
+
 };
 const DB_PATH = 'labScheduleDashboard/v4'; // change this if you want a fresh/separate dataset
 
@@ -1167,6 +1190,7 @@ function openRowModal(gid, rid){
   const styleVal = isNew ? 'solid' : r.style;
   const catVal = isNew ? (categories[0] ? categories[0].id : 'other') : (getCategory(r.category).id);
   const completedDateVal = isNew ? '' : (r.completedDate || '');
+  let editSegments = (isNew || !r.segments) ? [] : JSON.parse(JSON.stringify(r.segments));
   modalBox.innerHTML = `
     <h2>${isNew ? 'Add sub-step' : 'Edit sub-step'}</h2>
     <div class="field">
@@ -1194,6 +1218,12 @@ function openRowModal(gid, rid){
       </div>
     </div>
     <p style="margin:-6px 0 13px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);">Bars run from the chosen week of the "From" month to the chosen week of the "To" month. Choosing a month outside the current chart (e.g. into 2027 or beyond) automatically extends the timeline.</p>
+    <div class="field">
+      <label>Timeline detail — optional dated phases</label>
+      <div id="segList"></div>
+      <button type="button" class="btn ghost" id="seg-add" style="font-size:9.5px;padding:5px 10px;">+ Add phase</button>
+      <p style="margin:8px 0 0;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink-soft);">e.g. "Jul-26 W1 → Jul-26 W4: on progress, waiting quotation" then "Aug-26 W1 → Aug-26 W2: onsite check". When phases are added they replace the single bar above on the timeline — each phase gets its own date range, status, and short note shown right on the bar.</p>
+    </div>
     <div class="field-row">
       <div class="field">
         <label>Status</label>
@@ -1243,6 +1273,44 @@ function openRowModal(gid, rid){
     </div>
   `;
   overlay.classList.add('show');
+  function renderSegList(){
+    const wrap = document.getElementById('segList');
+    wrap.innerHTML = '';
+    editSegments.forEach((seg)=>{
+      const row = document.createElement('div');
+      row.className = 'seg-row';
+      row.innerHTML = `
+        <select class="seg-from-m">${MONTH_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===seg.startMonth?'selected':''}>${o.label}</option>`).join('')}</select>
+        <select class="seg-from-w">${WEEK_OPTIONS.map(w=>`<option value="${w}" ${w===(seg.startWeek||1)?'selected':''}>W${w}</option>`).join('')}</select>
+        <span class="seg-arrow">→</span>
+        <select class="seg-to-m">${MONTH_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===seg.endMonth?'selected':''}>${o.label}</option>`).join('')}</select>
+        <select class="seg-to-w">${WEEK_OPTIONS.map(w=>`<option value="${w}" ${w===(seg.endWeek||4)?'selected':''}>W${w}</option>`).join('')}</select>
+        <select class="seg-style">
+          <option value="solid" ${(seg.style||'solid')==='solid'?'selected':''}>In progress</option>
+          <option value="dashed" ${seg.style==='dashed'?'selected':''}>Planned</option>
+          <option value="completed" ${seg.style==='completed'?'selected':''}>Completed</option>
+        </select>
+        <input type="text" class="seg-label" placeholder="Short note shown on the bar" value="${(seg.label||'').replace(/"/g,'&quot;')}">
+        <button type="button" class="icon-btn seg-del" title="Remove this phase">🗑</button>
+      `;
+      row.querySelector('.seg-from-m').addEventListener('change', e=>{ seg.startMonth = e.target.value; });
+      row.querySelector('.seg-from-w').addEventListener('change', e=>{ seg.startWeek = parseInt(e.target.value,10); });
+      row.querySelector('.seg-to-m').addEventListener('change', e=>{ seg.endMonth = e.target.value; });
+      row.querySelector('.seg-to-w').addEventListener('change', e=>{ seg.endWeek = parseInt(e.target.value,10); });
+      row.querySelector('.seg-style').addEventListener('change', e=>{ seg.style = e.target.value; });
+      row.querySelector('.seg-label').addEventListener('input', e=>{ seg.label = e.target.value; });
+      row.querySelector('.seg-del').addEventListener('click', ()=>{
+        editSegments = editSegments.filter(s=>s!==seg);
+        renderSegList();
+      });
+      wrap.appendChild(row);
+    });
+  }
+  renderSegList();
+  document.getElementById('seg-add').addEventListener('click', ()=>{
+    editSegments.push({ startMonth:fromVal, startWeek:1, endMonth:fromVal, endWeek:4, style:'solid', label:'' });
+    renderSegList();
+  });
   document.getElementById('m-style').addEventListener('change', (e)=>{
     document.getElementById('m-completed-field').style.display = e.target.value==='completed' ? '' : 'none';
   });
@@ -1272,12 +1340,19 @@ function openRowModal(gid, rid){
     let completedDate = document.getElementById('m-completed-date').value;
     if(style==='completed' && !completedDate){ alert('Please enter the completed date.'); return; }
     if(style!=='completed') completedDate = '';
+    const segments = editSegments.map(s=>{
+      let sm=s.startMonth, sw=s.startWeek||1, em=s.endMonth, ew=s.endWeek||4;
+      if(em<sm){ em=sm; }
+      if(em===sm && ew<sw){ ew=sw; }
+      return { startMonth:sm, startWeek:sw, endMonth:em, endWeek:ew, style:s.style||'solid', label:(s.label||'').trim() };
+    });
     if(isNew){
-      g.rows.push({id:uid(), label, startMonth:fromMonth, endMonth:toMonth, startWeek:fromWeek, endWeek:toWeek, style, category, requirement, pic, note, dueDate, budget, completedDate});
+      g.rows.push({id:uid(), label, startMonth:fromMonth, endMonth:toMonth, startWeek:fromWeek, endWeek:toWeek, style, category, requirement, pic, note, dueDate, budget, completedDate, segments});
     } else {
       r.label = label; r.startMonth = fromMonth; r.endMonth = toMonth;
       r.startWeek = fromWeek; r.endWeek = toWeek; r.style = style;
       r.category = category; r.requirement = requirement; r.pic = pic; r.note = note;
+      r.segments = segments;
       r.dueDate = dueDate; r.budget = budget; r.completedDate = completedDate;
     }
     saveData(); render(); closeModal();
@@ -1441,23 +1516,44 @@ function render(){
         cell.className='cell'; cell.style.width=colW+'px';
         rrow.appendChild(cell);
       }
-      const bar=document.createElement('div');
-      bar.className='bar '+r.style;
-      paintBar(bar, r.style, cat);
-      const cols = rowSpanToCols(r);
-      bar.style.left=((cols.start-1)*colW+2)+'px';
-      bar.style.width=(cols.span*colW-4)+'px';
-      const statusLabel = r.style==='completed' ? 'completed' : (r.style==='solid'?'in progress':'planned');
-      const fromTag = monthLabel(r.startMonth)+' W'+(r.startWeek||1);
-      const toTag = monthLabel(r.endMonth)+' W'+(r.endWeek||4);
-      bar.title=r.label+' — '+statusLabel+' · '+catObj.label+' · '+fromTag+(toTag!==fromTag?(' → '+toTag):'')+(document.body.classList.contains('edit-mode')?' · drag to move, drag right edge to resize':'');
-      bar.textContent = r.style==='dashed' ? '···' : '';
-      attachNoteHover(bar, r.note);
-      const resizeHandle = document.createElement('div');
-      resizeHandle.className='bar-resize';
-      bar.appendChild(resizeHandle);
-      attachBarDrag(bar, resizeHandle, g.id, r.id);
-      rrow.appendChild(bar);
+      if(r.segments && r.segments.length){
+        // Multiple dated phases for this one sub-step — each gets its own
+        // static bar (not drag/resize-able; edit phases via the modal).
+        r.segments.forEach(seg=>{
+          const segStyle = seg.style || 'solid';
+          const segBar=document.createElement('div');
+          segBar.className='bar bar-segment '+segStyle;
+          paintBar(segBar, segStyle, cat);
+          const segCols = rowSpanToCols(seg);
+          segBar.style.left=((segCols.start-1)*colW+2)+'px';
+          segBar.style.width=(segCols.span*colW-4)+'px';
+          const segStatusLabel = segStyle==='completed' ? 'completed' : (segStyle==='solid'?'in progress':'planned');
+          const segFromTag = monthLabel(seg.startMonth)+' W'+(seg.startWeek||1);
+          const segToTag = monthLabel(seg.endMonth)+' W'+(seg.endWeek||4);
+          segBar.title = r.label+(seg.label?(' — '+seg.label):'')+' · '+segStatusLabel+' · '+segFromTag+(segToTag!==segFromTag?(' → '+segToTag):'');
+          if(seg.label) segBar.textContent = seg.label;
+          attachNoteHover(segBar, r.note);
+          rrow.appendChild(segBar);
+        });
+      } else {
+        const bar=document.createElement('div');
+        bar.className='bar '+r.style;
+        paintBar(bar, r.style, cat);
+        const cols = rowSpanToCols(r);
+        bar.style.left=((cols.start-1)*colW+2)+'px';
+        bar.style.width=(cols.span*colW-4)+'px';
+        const statusLabel = r.style==='completed' ? 'completed' : (r.style==='solid'?'in progress':'planned');
+        const fromTag = monthLabel(r.startMonth)+' W'+(r.startWeek||1);
+        const toTag = monthLabel(r.endMonth)+' W'+(r.endWeek||4);
+        bar.title=r.label+' — '+statusLabel+' · '+catObj.label+' · '+fromTag+(toTag!==fromTag?(' → '+toTag):'')+(document.body.classList.contains('edit-mode')?' · drag to move, drag right edge to resize':'');
+        bar.textContent = r.style==='dashed' ? '···' : '';
+        attachNoteHover(bar, r.note);
+        const resizeHandle = document.createElement('div');
+        resizeHandle.className='bar-resize';
+        bar.appendChild(resizeHandle);
+        attachBarDrag(bar, resizeHandle, g.id, r.id);
+        rrow.appendChild(bar);
+      }
 
       // Due date: thick red vertical marker, drawn whenever a due date is set
       if(r.dueDate){
