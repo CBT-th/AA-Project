@@ -326,6 +326,7 @@
     font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink);pointer-events:none;
   }
   .bar-progress-label .bpl-pct{font-weight:700;}
+  .bar-progress-label .bpl-status{color:var(--ink-soft);font-style:italic;}
   .bar-resize{
     position:absolute;right:0;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:2;
   }
@@ -750,7 +751,6 @@ const FIREBASE_CONFIG = {
   // TODO: paste the databaseURL from Realtime Database > Data tab, e.g.:
   // "https://cbt-th-5103d-default-rtdb.asia-southeast1.firebasedatabase.app"
   databaseURL: "https://project-schedule-dashboard-default-rtdb.asia-southeast1.firebasedatabase.app"
-
 };
 const DB_PATH = 'labScheduleDashboard/v4'; // change this if you want a fresh/separate dataset
 
@@ -1550,7 +1550,7 @@ function render(){
         const labelEl = document.createElement('div');
         labelEl.className = 'bar-progress-label';
         labelEl.style.left = (envLeft+envWidth+8)+'px';
-        labelEl.innerHTML = `${r.label} <span class="bpl-pct">${pct}%</span>`;
+        labelEl.innerHTML = `<span class="bpl-pct">${pct}%</span>${r.statusPhase.label ? `<span class="bpl-status">${r.statusPhase.label}</span>` : ''}`;
         rrow.appendChild(labelEl);
       } else {
         const bar=document.createElement('div');
