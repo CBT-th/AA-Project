@@ -88,7 +88,10 @@
   .legend-item{display:flex;align-items:center;gap:6px;}
   .swatch{width:22px;height:10px;border-radius:3px;flex-shrink:0;}
   .swatch.solid{background:var(--ink-soft);}
-  .swatch.dashed{background:#fff;border:2px dashed var(--ink-soft);}
+  .swatch.dashed{
+    background:repeating-linear-gradient(45deg, var(--ink-soft) 0px, var(--ink-soft) 3px, #fff 3px, #fff 6px);
+    border:1px solid var(--ink-soft);opacity:.55;
+  }
   .swatch.today{width:2px;height:16px;background:var(--today);border-radius:0;}
   .swatch.dueline{width:3px;height:16px;background:var(--rust);border-radius:0;}
   .swatch.completeline{width:3px;height:16px;background:var(--ink);border-radius:0;}
@@ -310,7 +313,19 @@
   .bar:hover{filter:brightness(1.1);z-index:5;box-shadow:0 2px 6px rgba(28,38,32,.18);}
   body.edit-mode .bar{cursor:grab;}
   body.edit-mode .bar.dragging{cursor:grabbing;z-index:20;box-shadow:0 4px 12px rgba(28,38,32,.3);}
-  .bar.bar-segment, body.edit-mode .bar.bar-segment{cursor:default;}
+
+  .bar-progress-envelope{
+    position:absolute;top:9px;height:20px;border-radius:5px;border:1px solid;cursor:default;
+  }
+  .bar-progress-fill{
+    position:absolute;top:9px;height:20px;border-top-left-radius:5px;border-bottom-left-radius:5px;
+    pointer-events:none;
+  }
+  .bar-progress-label{
+    position:absolute;top:9px;height:20px;display:flex;align-items:center;gap:6px;white-space:nowrap;
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink);pointer-events:none;
+  }
+  .bar-progress-label .bpl-pct{font-weight:700;}
   .bar-resize{
     position:absolute;right:0;top:0;bottom:0;width:8px;cursor:ew-resize;z-index:2;
   }
@@ -388,23 +403,6 @@
   }
   .cat-row input[type=text]:focus{outline:none;border-color:var(--solid);}
   .cat-row .icon-btn{flex-shrink:0;}
-
-  .seg-row{
-    display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;padding:8px 9px;
-    border:1px solid var(--line);border-radius:6px;background:var(--line-soft);
-  }
-  .seg-row select{
-    font-family:'IBM Plex Mono',monospace;font-size:10px;padding:5px 6px;border:1px solid var(--line);
-    border-radius:5px;background:#fff;color:var(--ink);
-  }
-  .seg-row select:focus{outline:none;border-color:var(--solid);}
-  .seg-row .seg-arrow{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);flex-shrink:0;}
-  .seg-row input[type=text]{
-    flex:1;min-width:130px;font-family:'IBM Plex Sans',sans-serif;font-size:12px;padding:6px 8px;
-    border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--ink);
-  }
-  .seg-row input[type=text]:focus{outline:none;border-color:var(--solid);}
-  .seg-row .icon-btn{flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -521,7 +519,7 @@
     The board is locked by default. Turn on <b>Edit mode</b> above and enter the password to reveal checkboxes, pencil icons, and delete controls — every change still asks for confirmation. &nbsp;•&nbsp;
     In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor. Use the <b>▲ / ▼</b> buttons to reorder task groups and sub-steps. Click the <b>▾ / ▸</b> arrow on a task group (any mode) to hide/show its sub-steps. &nbsp;•&nbsp;
     In Edit mode, drag a bar to move it or drag its right edge to resize — it snaps to individual <b>weeks (W1–W4)</b> within each month, and works together with the <b>project / status filters</b> in the toolbar. You can also set exact From/To week in the sub-step editor. &nbsp;•&nbsp;
-    A thick <b>red</b> line marks a sub-step's Due date and a thick <b>black</b> line marks its Completed date, both drawn on the bar itself. In the sub-step editor, use <b>+ Add phase</b> to break one sub-step into several dated phases (e.g. Jul W1→W4 "waiting quotation", then Aug W1→W2 "onsite check"), each with its own status and short note shown right on the bar. &nbsp;•&nbsp;
+    A thick <b>red</b> line marks a sub-step's Due date and a thick <b>black</b> line marks its Completed date, both drawn on the bar itself. In the sub-step editor, turn on <b>Track progress %</b> to show that sub-step as a filled progress bar instead of a plain one — pick a "status as of" point within its From/To range and the % fills automatically, with the label, % and PIC shown next to the bar. &nbsp;•&nbsp;
     Set status to <b>✓ Completed</b> and enter a completion date — the sub-step's label also gets a "Completed" badge for quick scanning. &nbsp;•&nbsp;
     Use <b>🎨 Projects</b> (Edit mode) to add, rename, recolour, or delete projects — every project/status filter, legend swatch, and bar colour updates automatically. &nbsp;•&nbsp;
     Use the <b>－ / ＋</b> zoom buttons (top right of the toolbar) to scale the whole board, like a browser zoom. &nbsp;•&nbsp;
@@ -622,10 +620,6 @@ function recomputeMonthsRange(){
     migrateRowMonths(r);
     if(r.startMonth < minKey) minKey = r.startMonth;
     if(r.endMonth > maxKey) maxKey = r.endMonth;
-    (r.segments||[]).forEach(seg=>{
-      if(seg.startMonth && seg.startMonth < minKey) minKey = seg.startMonth;
-      if(seg.endMonth && seg.endMonth > maxKey) maxKey = seg.endMonth;
-    });
   }));
   MONTHS = buildMonthRange(minKey, maxKey);
   TOTAL_COLS = MONTHS.length * 4;
@@ -702,11 +696,14 @@ function lightenHex(hex, amt=0.82){
 function paintBar(bar, style, catId){
   const cat = getCategory(catId);
   if(style==='dashed'){
-    bar.style.background = cat.fill || lightenHex(cat.color);
+    const stripeColor = cat.fill || lightenHex(cat.color);
+    bar.style.background = '#fff';
+    bar.style.backgroundImage = `repeating-linear-gradient(45deg, ${stripeColor} 0px, ${stripeColor} 6px, #fff 6px, #fff 12px)`;
     bar.style.borderColor = cat.color;
     bar.style.color = 'var(--ink)';
   } else {
     bar.style.background = cat.color;
+    bar.style.backgroundImage = 'none';
     bar.style.borderColor = cat.color;
     bar.style.color = '#F3F7F4';
   }
@@ -1190,7 +1187,10 @@ function openRowModal(gid, rid){
   const styleVal = isNew ? 'solid' : r.style;
   const catVal = isNew ? (categories[0] ? categories[0].id : 'other') : (getCategory(r.category).id);
   const completedDateVal = isNew ? '' : (r.completedDate || '');
-  let editSegments = (isNew || !r.segments) ? [] : JSON.parse(JSON.stringify(r.segments));
+  const phaseVal = isNew ? null : (r.statusPhase || null);
+  const phaseMVal = phaseVal ? phaseVal.asOfMonth : fromVal;
+  const phaseWVal = phaseVal ? phaseVal.asOfWeek : fromWeekVal;
+  const phaseLabelVal = phaseVal ? (phaseVal.label||'') : '';
   modalBox.innerHTML = `
     <h2>${isNew ? 'Add sub-step' : 'Edit sub-step'}</h2>
     <div class="field">
@@ -1219,10 +1219,27 @@ function openRowModal(gid, rid){
     </div>
     <p style="margin:-6px 0 13px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);">Bars run from the chosen week of the "From" month to the chosen week of the "To" month. Choosing a month outside the current chart (e.g. into 2027 or beyond) automatically extends the timeline.</p>
     <div class="field">
-      <label>Timeline detail — optional dated phases</label>
-      <div id="segList"></div>
-      <button type="button" class="btn ghost" id="seg-add" style="font-size:9.5px;padding:5px 10px;">+ Add phase</button>
-      <p style="margin:8px 0 0;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink-soft);">e.g. "Jul-26 W1 → Jul-26 W4: on progress, waiting quotation" then "Aug-26 W1 → Aug-26 W2: onsite check". When phases are added they replace the single bar above on the timeline — each phase gets its own date range, status, and short note shown right on the bar.</p>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px;color:var(--ink);margin-bottom:8px;">
+        <input type="checkbox" id="m-phase-enable" ${phaseVal?'checked':''}>
+        <span>Track progress % — fills the bar up to a "status as of" point within the From/To range above, like a progress bar</span>
+      </label>
+      <div id="m-phase-fields" style="${phaseVal?'':'display:none;'}">
+        <div class="field-row">
+          <div class="field">
+            <label>Status as of (month)</label>
+            <select id="m-phase-m">${MONTH_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===phaseMVal?'selected':''}>${o.label}</option>`).join('')}</select>
+          </div>
+          <div class="field">
+            <label>Status as of (week 1–4)</label>
+            <select id="m-phase-w">${WEEK_OPTIONS.map(w=>`<option value="${w}" ${w===phaseWVal?'selected':''}>Week ${w}</option>`).join('')}</select>
+          </div>
+        </div>
+        <div class="field">
+          <label>What's happening right now (shown on hover)</label>
+          <input type="text" id="m-phase-label" value="${phaseLabelVal.replace(/"/g,'&quot;')}" placeholder="e.g. Printing supports, waiting infill check">
+        </div>
+        <p style="margin:-6px 0 13px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink-soft);">The % is calculated automatically from where "Status as of" falls between the From and To dates above — it's not typed in by hand.</p>
+      </div>
     </div>
     <div class="field-row">
       <div class="field">
@@ -1273,43 +1290,8 @@ function openRowModal(gid, rid){
     </div>
   `;
   overlay.classList.add('show');
-  function renderSegList(){
-    const wrap = document.getElementById('segList');
-    wrap.innerHTML = '';
-    editSegments.forEach((seg)=>{
-      const row = document.createElement('div');
-      row.className = 'seg-row';
-      row.innerHTML = `
-        <select class="seg-from-m">${MONTH_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===seg.startMonth?'selected':''}>${o.label}</option>`).join('')}</select>
-        <select class="seg-from-w">${WEEK_OPTIONS.map(w=>`<option value="${w}" ${w===(seg.startWeek||1)?'selected':''}>W${w}</option>`).join('')}</select>
-        <span class="seg-arrow">→</span>
-        <select class="seg-to-m">${MONTH_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===seg.endMonth?'selected':''}>${o.label}</option>`).join('')}</select>
-        <select class="seg-to-w">${WEEK_OPTIONS.map(w=>`<option value="${w}" ${w===(seg.endWeek||4)?'selected':''}>W${w}</option>`).join('')}</select>
-        <select class="seg-style">
-          <option value="solid" ${(seg.style||'solid')==='solid'?'selected':''}>In progress</option>
-          <option value="dashed" ${seg.style==='dashed'?'selected':''}>Planned</option>
-          <option value="completed" ${seg.style==='completed'?'selected':''}>Completed</option>
-        </select>
-        <input type="text" class="seg-label" placeholder="Short note shown on the bar" value="${(seg.label||'').replace(/"/g,'&quot;')}">
-        <button type="button" class="icon-btn seg-del" title="Remove this phase">🗑</button>
-      `;
-      row.querySelector('.seg-from-m').addEventListener('change', e=>{ seg.startMonth = e.target.value; });
-      row.querySelector('.seg-from-w').addEventListener('change', e=>{ seg.startWeek = parseInt(e.target.value,10); });
-      row.querySelector('.seg-to-m').addEventListener('change', e=>{ seg.endMonth = e.target.value; });
-      row.querySelector('.seg-to-w').addEventListener('change', e=>{ seg.endWeek = parseInt(e.target.value,10); });
-      row.querySelector('.seg-style').addEventListener('change', e=>{ seg.style = e.target.value; });
-      row.querySelector('.seg-label').addEventListener('input', e=>{ seg.label = e.target.value; });
-      row.querySelector('.seg-del').addEventListener('click', ()=>{
-        editSegments = editSegments.filter(s=>s!==seg);
-        renderSegList();
-      });
-      wrap.appendChild(row);
-    });
-  }
-  renderSegList();
-  document.getElementById('seg-add').addEventListener('click', ()=>{
-    editSegments.push({ startMonth:fromVal, startWeek:1, endMonth:fromVal, endWeek:4, style:'solid', label:'' });
-    renderSegList();
+  document.getElementById('m-phase-enable').addEventListener('change', (e)=>{
+    document.getElementById('m-phase-fields').style.display = e.target.checked ? '' : 'none';
   });
   document.getElementById('m-style').addEventListener('change', (e)=>{
     document.getElementById('m-completed-field').style.display = e.target.value==='completed' ? '' : 'none';
@@ -1340,19 +1322,21 @@ function openRowModal(gid, rid){
     let completedDate = document.getElementById('m-completed-date').value;
     if(style==='completed' && !completedDate){ alert('Please enter the completed date.'); return; }
     if(style!=='completed') completedDate = '';
-    const segments = editSegments.map(s=>{
-      let sm=s.startMonth, sw=s.startWeek||1, em=s.endMonth, ew=s.endWeek||4;
-      if(em<sm){ em=sm; }
-      if(em===sm && ew<sw){ ew=sw; }
-      return { startMonth:sm, startWeek:sw, endMonth:em, endWeek:ew, style:s.style||'solid', label:(s.label||'').trim() };
-    });
+    let statusPhase = null;
+    if(document.getElementById('m-phase-enable').checked){
+      statusPhase = {
+        asOfMonth: document.getElementById('m-phase-m').value,
+        asOfWeek: parseInt(document.getElementById('m-phase-w').value, 10),
+        label: document.getElementById('m-phase-label').value.trim()
+      };
+    }
     if(isNew){
-      g.rows.push({id:uid(), label, startMonth:fromMonth, endMonth:toMonth, startWeek:fromWeek, endWeek:toWeek, style, category, requirement, pic, note, dueDate, budget, completedDate, segments});
+      g.rows.push({id:uid(), label, startMonth:fromMonth, endMonth:toMonth, startWeek:fromWeek, endWeek:toWeek, style, category, requirement, pic, note, dueDate, budget, completedDate, statusPhase});
     } else {
       r.label = label; r.startMonth = fromMonth; r.endMonth = toMonth;
       r.startWeek = fromWeek; r.endWeek = toWeek; r.style = style;
       r.category = category; r.requirement = requirement; r.pic = pic; r.note = note;
-      r.segments = segments;
+      r.statusPhase = statusPhase;
       r.dueDate = dueDate; r.budget = budget; r.completedDate = completedDate;
     }
     saveData(); render(); closeModal();
@@ -1516,25 +1500,58 @@ function render(){
         cell.className='cell'; cell.style.width=colW+'px';
         rrow.appendChild(cell);
       }
-      if(r.segments && r.segments.length){
-        // Multiple dated phases for this one sub-step — each gets its own
-        // static bar (not drag/resize-able; edit phases via the modal).
-        r.segments.forEach(seg=>{
-          const segStyle = seg.style || 'solid';
-          const segBar=document.createElement('div');
-          segBar.className='bar bar-segment '+segStyle;
-          paintBar(segBar, segStyle, cat);
-          const segCols = rowSpanToCols(seg);
-          segBar.style.left=((segCols.start-1)*colW+2)+'px';
-          segBar.style.width=(segCols.span*colW-4)+'px';
-          const segStatusLabel = segStyle==='completed' ? 'completed' : (segStyle==='solid'?'in progress':'planned');
-          const segFromTag = monthLabel(seg.startMonth)+' W'+(seg.startWeek||1);
-          const segToTag = monthLabel(seg.endMonth)+' W'+(seg.endWeek||4);
-          segBar.title = r.label+(seg.label?(' — '+seg.label):'')+' · '+segStatusLabel+' · '+segFromTag+(segToTag!==segFromTag?(' → '+segToTag):'');
-          if(seg.label) segBar.textContent = seg.label;
-          attachNoteHover(segBar, r.note);
-          rrow.appendChild(segBar);
-        });
+      if(r.style!=='completed' && r.statusPhase){
+        // Progress-bar mode: the row's own From/To is the overall timeframe
+        // (light track); "statusPhase" is a single point-in-time within it
+        // that auto-computes how much of the track is filled.
+        const rowCols = rowSpanToCols(r);
+        const asOfAbs = monthWeekToCol(r.statusPhase.asOfMonth, r.statusPhase.asOfWeek);
+        const rowEndAbs = rowCols.start + rowCols.span - 1;
+        const clampedAbs = Math.max(rowCols.start, Math.min(rowEndAbs, asOfAbs));
+        const doneCols = clampedAbs - rowCols.start + 1;
+        const pct = Math.round(Math.max(0, Math.min(100, (doneCols/rowCols.span)*100)));
+
+        const envLeft = (rowCols.start-1)*colW+2;
+        const envWidth = rowCols.span*colW-4;
+
+        const envBar = document.createElement('div');
+        envBar.className = 'bar-progress-envelope';
+        envBar.style.left = envLeft+'px';
+        envBar.style.width = envWidth+'px';
+        if(r.style==='dashed'){
+          // Planned: diagonal-stripe track so it can't be mistaken for "in progress"
+          const stripeColor = catObj.fill || lightenHex(catObj.color);
+          envBar.style.background = '#fff';
+          envBar.style.backgroundImage = `repeating-linear-gradient(45deg, ${stripeColor} 0px, ${stripeColor} 6px, #fff 6px, #fff 12px)`;
+          envBar.style.borderStyle = 'dashed';
+          envBar.style.borderWidth = '2px';
+        } else {
+          envBar.style.background = catObj.fill || lightenHex(catObj.color);
+          envBar.style.backgroundImage = 'none';
+          envBar.style.borderStyle = 'solid';
+          envBar.style.borderWidth = '1px';
+        }
+        envBar.style.borderColor = catObj.color;
+        const asOfTag = monthLabel(r.statusPhase.asOfMonth)+' W'+r.statusPhase.asOfWeek;
+        envBar.title = r.label+' — '+pct+'% as of '+asOfTag+(r.statusPhase.label?(' · '+r.statusPhase.label):'');
+        attachNoteHover(envBar, r.note);
+        rrow.appendChild(envBar);
+
+        const fillBar = document.createElement('div');
+        fillBar.className = 'bar-progress-fill';
+        fillBar.style.left = envLeft+'px';
+        fillBar.style.width = Math.max(0, Math.min(envWidth, doneCols*colW-4))+'px';
+        fillBar.style.background = catObj.color;
+        // Fully round both corners once the fill reaches the end of the bar,
+        // so a completed-looking span doesn't end in a squared-off edge.
+        fillBar.style.borderRadius = pct>=100 ? '5px' : '5px 0 0 5px';
+        rrow.appendChild(fillBar);
+
+        const labelEl = document.createElement('div');
+        labelEl.className = 'bar-progress-label';
+        labelEl.style.left = (envLeft+envWidth+8)+'px';
+        labelEl.innerHTML = `${r.label} <span class="bpl-pct">${pct}%</span>`;
+        rrow.appendChild(labelEl);
       } else {
         const bar=document.createElement('div');
         bar.className='bar '+r.style;
