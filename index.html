@@ -516,16 +516,7 @@
   </div>
 
   <p class="footnote">
-    <b>Note:</b> Phase 1A (material characterization) actually started in the 4th week of Jun-2026, before this chart's start date; its bar is clipped to begin at the 1st week of Jul-2026. &nbsp;•&nbsp;
-    The board is locked by default. Turn on <b>Edit mode</b> above and enter the password to reveal checkboxes, pencil icons, and delete controls — every change still asks for confirmation. &nbsp;•&nbsp;
-    In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor. Use the <b>▲ / ▼</b> buttons to reorder task groups and sub-steps. Click the <b>▾ / ▸</b> arrow on a task group (any mode) to hide/show its sub-steps. &nbsp;•&nbsp;
-    In Edit mode, drag a bar to move it or drag its right edge to resize — it snaps to individual <b>weeks (W1–W4)</b> within each month, and works together with the <b>project / status filters</b> in the toolbar. You can also set exact From/To week in the sub-step editor. &nbsp;•&nbsp;
-    A thick <b>red</b> line marks a sub-step's Due date and a thick <b>black</b> line marks its Completed date, both drawn on the bar itself. In the sub-step editor, turn on <b>Track progress %</b> to show that sub-step as a filled progress bar instead of a plain one — pick a "status as of" point within its From/To range and the % fills automatically, with the label, % and PIC shown next to the bar. &nbsp;•&nbsp;
-    Set status to <b>✓ Completed</b> and enter a completion date — the sub-step's label also gets a "Completed" badge for quick scanning. &nbsp;•&nbsp;
-    Use <b>🎨 Projects</b> (Edit mode) to add, rename, recolour, or delete projects — every project/status filter, legend swatch, and bar colour updates automatically. &nbsp;•&nbsp;
-    Use the <b>－ / ＋</b> zoom buttons (top right of the toolbar) to scale the whole board, like a browser zoom. &nbsp;•&nbsp;
-    Use <b>⬇ Export JSON</b> to download the full dataset (tasks + projects) as a .json file, e.g. to import into another dashboard. &nbsp;•&nbsp;
-    Use the <b>💰 Budget</b> button to show/hide the budget column, and click the progress ring in the header for an overall completion memo with a project and PIC breakdown.
+    <b>Note:</b> Please use Edit mode for export JSON and Budget information.
   </p>
 
 </div>
@@ -1217,11 +1208,11 @@ function openRowModal(gid, rid){
         <select id="m-to-week">${WEEK_OPTIONS.map(w=>`<option value="${w}" ${w===toWeekVal?'selected':''}>Week ${w}</option>`).join('')}</select>
       </div>
     </div>
-    <p style="margin:-6px 0 13px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);">Bars run from the chosen week of the "From" month to the chosen week of the "To" month. Choosing a month outside the current chart (e.g. into 2027 or beyond) automatically extends the timeline.</p>
+    <p style="margin:-6px 0 13px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);">Choose the Tracking progress within FROM and TO.</p>
     <div class="field">
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:12px;color:var(--ink);margin-bottom:8px;">
         <input type="checkbox" id="m-phase-enable" ${phaseVal?'checked':''}>
-        <span>Track progress % — fills the bar up to a "status as of" point within the From/To range above, like a progress bar</span>
+        <span>Track progress % — fill the status up-to-date.</span>
       </label>
       <div id="m-phase-fields" style="${phaseVal?'':'display:none;'}">
         <div class="field-row">
