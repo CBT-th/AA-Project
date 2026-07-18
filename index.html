@@ -35,7 +35,7 @@
     background:var(--bg);
     color:var(--ink);
     font-family:'IBM Plex Sans', sans-serif;
-    padding:24px 24px 20px;
+    padding:14px 20px 10px;
     box-sizing:border-box;
     /* App-shell layout: the page itself never scrolls. Everything above
        and below the table (title, legend, toolbar, footnote) keeps its
@@ -57,13 +57,13 @@
   /* ===== Header ===== */
   .titleblock{
     display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;
-    margin-bottom:18px;border-bottom:2px solid var(--ink);padding-bottom:16px;
+    margin-bottom:10px;border-bottom:2px solid var(--ink);padding-bottom:10px;
     flex-shrink:0;
   }
-  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px;}
-  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;margin:0;letter-spacing:-0.01em;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;margin:0;letter-spacing:-0.01em;}
   .updated-tag{
-    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin:8px 0 0;
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin:6px 0 0;
     display:flex;align-items:center;gap:6px;
   }
   .updated-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--solid);display:inline-block;}
@@ -71,8 +71,19 @@
   .sync-tag.ok{color:var(--solid);}
   .sync-tag.warn{color:var(--planned);}
   .sync-tag.err{color:var(--rust);}
-  .legend{display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);}
-  .legend-group{display:flex;gap:14px;align-items:center;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);}
+
+  .quick-stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .stat-chip{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+    padding:6px 16px;border:1px solid var(--line);border-radius:8px;background:var(--paper);min-width:60px;
+  }
+  .stat-chip .stat-num{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;color:var(--ink);line-height:1.1;}
+  .stat-chip .stat-label{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);white-space:nowrap;}
+  .stat-chip.warn .stat-num{color:var(--rust);}
+  .stat-chip.warn.zero{opacity:.55;}
+  .stat-chip.warn.zero .stat-num{color:var(--ink);}
+  .legend{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);}
+  .legend-group{display:flex;gap:11px;align-items:center;padding:5px 9px;border:1px solid var(--line);border-radius:8px;background:var(--paper);}
   .legend-group .legend-title{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin-right:2px;}
   .legend-item{display:flex;align-items:center;gap:6px;}
   .swatch{width:22px;height:10px;border-radius:3px;flex-shrink:0;}
@@ -83,7 +94,7 @@
   .swatch.completeline{width:3px;height:16px;background:var(--ink);border-radius:0;}
 
   /* ===== toolbar ===== */
-  .toolbar{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap;flex-shrink:0;}
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;flex-shrink:0;}
   .btn{
     font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--paper);
     border:1px solid var(--ink);color:var(--ink);padding:7px 12px;border-radius:6px;cursor:pointer;
@@ -110,11 +121,11 @@
   .filter-select:focus{outline:none;border-color:var(--solid);}
 
   .progress-badge{
-    display:flex;align-items:center;gap:9px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;
+    display:flex;align-items:center;gap:8px;padding:5px 10px;border:1px solid var(--line);border-radius:8px;
     background:var(--paper);cursor:pointer;font-family:'IBM Plex Mono',monospace;
   }
   .progress-badge:hover{border-color:var(--solid);}
-  .progress-badge .pb-ring{width:30px;height:30px;flex-shrink:0;}
+  .progress-badge .pb-ring{width:26px;height:26px;flex-shrink:0;}
   .progress-badge .pb-text{display:flex;flex-direction:column;line-height:1.25;}
   .progress-badge .pb-pct{font-size:15px;font-weight:700;color:var(--ink);font-family:'Space Grotesk',sans-serif;}
   .progress-badge .pb-label{font-size:8.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);}
@@ -151,7 +162,7 @@
   body.edit-mode .lock-hint .locked-txt{display:none;}
   body:not(.edit-mode) .lock-hint .unlocked-txt{display:none;}
 
-  .edit-only{display:none;}
+  .edit-only.edit-only{display:none;}
   body.edit-mode .edit-only{display:inline-flex;}
 
   /* ===== Layout ===== */
@@ -196,7 +207,7 @@
 
   .lhead{
     position: sticky;top: 0;z-index: 25;
-    height:var(--header-h);display:flex;align-items:flex-end;padding:0 10px 8px;
+    height:var(--header-h);display:flex;align-items:flex-end;padding:0 10px 8px 40px;
     border-bottom:1px solid var(--ink);background:var(--paper);gap:8px;
     font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-soft);
     letter-spacing:.04em;text-transform:uppercase;
@@ -246,7 +257,7 @@
   .rgroup-head{height:32px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--line-soft);}
 
   .lrow{
-    display:flex;align-items:center;gap:8px;height:var(--row-h);padding:0 10px 0 22px;
+    display:flex;align-items:center;gap:8px;height:var(--row-h);padding:0 10px 0 52px;
     border-bottom:1px solid var(--line-soft);
   }
   .lrow .r-check{width:16px;flex-shrink:0;}
@@ -315,13 +326,8 @@
   }
 
   .due-marker{position:absolute;top:4px;bottom:4px;width:3px;background:var(--rust);z-index:7;pointer-events:none;}
-  .due-marker .dm-tag{
-    position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;
-    font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--rust);background:var(--paper);
-    padding:1px 3px;border-radius:3px;white-space:nowrap;border:1px solid var(--rust);
-  }
 
-  .footnote{margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);line-height:1.5;flex-shrink:0;max-height:60px;overflow-y:auto;}
+  .footnote{margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-soft);line-height:1.45;flex-shrink:0;max-height:46px;overflow-y:auto;}
   .footnote b{color:var(--ink);}
 
   /* ===== Note tooltip (hover / click on task in edit mode) ===== */
@@ -392,6 +398,12 @@
       <h1>Project Schedule &amp; Progress</h1>
       <p class="updated-tag" id="updatedTag"><span class="dot"></span>Last updated: —</p>
       <p class="sync-tag" id="syncTag">● Connecting…</p>
+    </div>
+    <div class="quick-stats" id="quickStats">
+      <div class="stat-chip"><span class="stat-num" id="statGroups">0</span><span class="stat-label">Task groups</span></div>
+      <div class="stat-chip"><span class="stat-num" id="statSteps">0</span><span class="stat-label">Sub-steps</span></div>
+      <div class="stat-chip"><span class="stat-num" id="statProgress">0</span><span class="stat-label">In progress</span></div>
+      <div class="stat-chip warn zero" id="statOverdueChip"><span class="stat-num" id="statOverdue">0</span><span class="stat-label">Overdue</span></div>
     </div>
     <div class="legend">
       <div class="legend-group" id="legendProjectGroup">
@@ -489,7 +501,7 @@
   <p class="footnote">
     <b>Note:</b> Phase 1A (material characterization) actually started in the 4th week of Jun-2026, before this chart's start date; its bar is clipped to begin at the 1st week of Jul-2026. &nbsp;•&nbsp;
     The board is locked by default. Turn on <b>Edit mode</b> above and enter the password to reveal checkboxes, pencil icons, and delete controls — every change still asks for confirmation. &nbsp;•&nbsp;
-    In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor. Use the <b>▲ / ▼</b> buttons to reorder task groups and sub-steps. &nbsp;•&nbsp;
+    In Edit mode, hover or click once on any task/sub-step (left label or the bar) to preview its <b>Note</b> without opening the editor. Use the <b>▲ / ▼</b> buttons to reorder task groups and sub-steps. Click the <b>▾ / ▸</b> arrow on a task group (any mode) to hide/show its sub-steps. &nbsp;•&nbsp;
     In Edit mode, drag a bar to move it or drag its right edge to resize — it snaps to individual <b>weeks (W1–W4)</b> within each month, and works together with the <b>project / status filters</b> in the toolbar. You can also set exact From/To week in the sub-step editor. &nbsp;•&nbsp;
     A thick <b>red</b> line marks a sub-step's Due date and a thick <b>black</b> line marks its Completed date, both drawn on the bar itself. &nbsp;•&nbsp;
     Set status to <b>✓ Completed</b> and enter a completion date — the sub-step's label also gets a "Completed" badge for quick scanning. &nbsp;•&nbsp;
@@ -550,7 +562,10 @@ const MONTH_OPTIONS = buildMonthRange(addMonths(BASE_START,-18), addMonths(BASE_
 
 let MONTHS = buildMonthRange(BASE_START, BASE_END); // current visible range, recomputed each render
 let TOTAL_COLS = MONTHS.length * 4;
-const colW = 30;
+let colW = 30;
+const BASE_COL_W = 30;
+const BASE_ROW_H = 38;
+const BASE_HEADER_H = 56;
 const STORAGE_KEY = 'labScheduleDataV4';
 const CATS_STORAGE_KEY = 'labScheduleCategoriesV4';
 const UPDATED_KEY = 'labScheduleUpdatedV4';
@@ -722,6 +737,7 @@ const DB_PATH = 'labScheduleDashboard/v4'; // change this if you want a fresh/se
 let data = JSON.parse(JSON.stringify(DEFAULT_DATA));
 let selectedGroups = new Set();
 let selectedRows = new Set();
+let collapsedGroups = new Set(); // which task groups have their sub-steps hidden (per-browser, not synced)
 let firebaseEnabled = false;
 let dbRef = null;
 let filterProject = 'all';
@@ -896,11 +912,16 @@ document.getElementById('exportBtn').addEventListener('click', ()=>{
   URL.revokeObjectURL(url);
 });
 
-/* ---------- Zoom controls (scales the whole board, like a browser zoom) ---------- */
+/* ---------- Zoom controls (scales column width / row height / header height, then re-renders) ---------- */
 let zoomPct = 100;
 function applyZoom(){
-  document.querySelector('.wrap').style.zoom = (zoomPct/100);
+  const factor = zoomPct/100;
+  colW = Math.max(1, Math.round(BASE_COL_W * factor));
+  document.documentElement.style.setProperty('--col-w', colW+'px');
+  document.documentElement.style.setProperty('--row-h', Math.round(BASE_ROW_H*factor)+'px');
+  document.documentElement.style.setProperty('--header-h', Math.round(BASE_HEADER_H*factor)+'px');
   document.getElementById('zoomPct').textContent = zoomPct + '%';
+  render();
   setTimeout(()=>{ updateVScrollThumb(); drawTodayLine(); }, 0);
 }
 document.getElementById('zoomIn').addEventListener('click', ()=>{ zoomPct = Math.min(200, zoomPct+10); applyZoom(); });
@@ -918,7 +939,7 @@ document.addEventListener('click', (e)=>{
   if(!progressPop.contains(e.target) && e.target!==progressBadge) progressPop.classList.remove('show');
 });
 function updateProgressSummary(){
-  let total=0, done=0;
+  let total=0, done=0, overdue=0, inProgress=0;
   const byCat = {};
   categories.forEach(c=>{ byCat[c.id] = {total:0,done:0}; });
   const byPic = {};
@@ -930,6 +951,10 @@ function updateProgressSummary(){
     if(!byPic[picKey]) byPic[picKey] = {total:0,done:0};
     byPic[picKey].total++;
     if(r.style==='completed'){ done++; byCat[cat].done++; byPic[picKey].done++; }
+    else {
+      if(r.style==='solid') inProgress++;
+      if(r.dueDate && r.dueDate < todayISO) overdue++;
+    }
   }));
   const pct = total>0 ? Math.round((done/total)*100) : 0;
   document.getElementById('pbPct').textContent = pct + '%';
@@ -958,6 +983,13 @@ function updateProgressSummary(){
     <div class="pp-sub-title">By PIC</div>
     ${picRows}
   `;
+
+  document.getElementById('statGroups').textContent = data.length;
+  document.getElementById('statSteps').textContent = total;
+  document.getElementById('statProgress').textContent = inProgress;
+  const overdueEl = document.getElementById('statOverdue');
+  overdueEl.textContent = overdue;
+  document.getElementById('statOverdueChip').classList.toggle('zero', overdue===0);
 }
 
 /* ---------- Note tooltip ---------- */
@@ -1284,9 +1316,11 @@ function render(){
     const visibleRows = filtering ? g.rows.filter(r=>rowMatchesFilter(r, r.category||'other')) : g.rows;
     if(filtering && visibleRows.length===0) return; // whole group hidden by filter
 
+    const isCollapsed = collapsedGroups.has(g.id);
     const lgh = document.createElement('div');
     lgh.className='group-head';
     lgh.innerHTML = `
+      <button class="icon-btn group-toggle" title="${isCollapsed?'Show':'Hide'} sub-steps">${isCollapsed?'▸':'▾'}</button>
       <span class="g-check edit-only"><input type="checkbox" title="Select whole group for deletion"></span>
       <span class="g-title">${g.title}</span>
       <span class="move-group edit-only">
@@ -1296,6 +1330,10 @@ function render(){
       <button class="icon-btn add edit-only" title="Add sub-step">+ step</button>
       <button class="icon-btn edit-only" title="Edit / delete group">✎</button>
     `;
+    lgh.querySelector('.group-toggle').addEventListener('click', ()=>{
+      if(isCollapsed) collapsedGroups.delete(g.id); else collapsedGroups.add(g.id);
+      render();
+    });
     const gCheck = lgh.querySelector('.g-check input');
     gCheck.addEventListener('change', ()=>{
       if(gCheck.checked) selectedGroups.add(g.id); else selectedGroups.delete(g.id);
@@ -1314,7 +1352,7 @@ function render(){
     rgh.style.width=(TOTAL_COLS*colW)+'px';
     panelRight.appendChild(rgh);
 
-    visibleRows.forEach((r)=>{
+    (isCollapsed ? [] : visibleRows).forEach((r)=>{
       const rIdx = g.rows.indexOf(r); // index within the FULL (unfiltered) list, for move up/down + disabling
       const catObj = getCategory(r.category);
       const cat = catObj.id;
@@ -1428,10 +1466,7 @@ function render(){
           const dueMarker = document.createElement('div');
           dueMarker.className='due-marker';
           dueMarker.style.left = duePos+'px';
-          const dueTag = document.createElement('div');
-          dueTag.className='dm-tag';
-          dueTag.textContent = '⏰ ' + r.dueDate;
-          dueMarker.appendChild(dueTag);
+          dueMarker.title = 'Due date: ' + r.dueDate;
           rrow.appendChild(dueMarker);
         }
       }
